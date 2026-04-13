@@ -1,4 +1,15 @@
 /**
+ * History:
+ *
+ * 13th April:
+ *
+ *   Converted from JavaScript
+ *
+ *   Requires a top level Tabs() creation from init complete
+ *
+ */
+
+/**
  * A 'tab' in a tabbed page
  */
 class Tab {

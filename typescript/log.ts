@@ -1,4 +1,4 @@
-import * as html from "./html.js";
+import { HtmlElement } from "./html.js";
 
 export class Logger {
   log: Log;
@@ -74,14 +74,14 @@ class LogEntry {
 
 export class Log {
   log: Array<LogEntry>;
-  div: html.HtmlElement;
+  div: HtmlElement;
 
   constructor(div_id: string) {
     this.log = [];
     const div = document.getElementById(div_id);
 
     if (div) {
-      this.div = new html.HtmlElement(div);
+      this.div = new HtmlElement(div);
     } else {
       throw new Error("Div id not found for Log");
     }

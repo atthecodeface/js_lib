@@ -1,29 +1,96 @@
-export function get_input_float(id: string, min: number, max: number): number {
+/**
+ * History
+ *
+ * 12 April:
+ *
+ *   Converted to TypeScript (temporarily removed DbStorage)
+ *
+ *   Added  input get/set methods
+ *
+ *   Removed global 'clear' function - use an HtmlElement and its clear method
+ *
+ *   Removed global add_ele and if_ele_id
+ *
+ * 31 March: Directory methods take files in root, suffix rather than the other ways round
+ *
+ */
+
+/**
+ * Get the value of a float fron an HTMLInputElement, bounded by min and max,
+ * with a default of the ID cannot be found
+ *
+ * @param {string} id The id of an HTMLInputElement whose value is to be read
+ * @param {number} min The minimum value that the ID must have
+ * @param {number} max The maximum value that the ID must have
+ * @param {number} deflt? Optional default value to return if the ID does not correspond to an HTMLInputElement
+ * @returns {number} the value in the HTMLInputElement bounded by min and max, or the default value. It updates the value in the HTMLInputElement.
+ **/
+export function get_input_float(
+  id: string,
+  min: number,
+  max: number,
+  deflt?: number,
+): number {
   const e = document.getElementById(id);
   if (!(e instanceof HTMLInputElement)) {
-    return 0;
+    if (deflt !== undefined) {
+      return deflt;
+    } else {
+      return min;
+    }
   }
   var p = Number.parseFloat(e.value);
-  if (!(p >= min && p <= max)) {
-    p = (min + max) / 2;
-  }
-  e.value = p.toString();
-  return p;
-}
-
-export function get_input_int(id: string, min: number, max: number): number {
-  const e = document.getElementById(id);
-  if (!(e instanceof HTMLInputElement)) {
-    return min;
-  }
-  var p = Number.parseInt(e.value);
-  if (!(p >= min && p <= max)) {
+  if (!(p >= min)) {
     p = min;
   }
+  if (p > max) {
+    p = max;
+  }
   e.value = p.toString();
   return p;
 }
 
+/**
+ * Get the value of an int fron an HTMLInputElement, bounded by min and max,
+ * with a default of the ID cannot be found
+ *
+ * @param {string} id The id of an HTMLInputElement whose value is to be read
+ * @param {number} min The minimum value that the ID must have
+ * @param {number} max The maximum value that the ID must have
+ * @param {number} deflt? Optional default value to return if the ID does not correspond to an HTMLInputElement
+ * @returns {number} the value in the HTMLInputElement bounded by min and max, or the default value. It updates the value in the HTMLInputElement.
+ */
+export function get_input_int(
+  id: string,
+  min: number,
+  max: number,
+  deflt?: number,
+): number {
+  const e = document.getElementById(id);
+  if (!(e instanceof HTMLInputElement)) {
+    if (deflt !== undefined) {
+      return deflt;
+    } else {
+      return min;
+    }
+  }
+  var p = Number.parseInt(e.value);
+  if (!(p >= min)) {
+    p = min;
+  }
+  if (p > max) {
+    p = max;
+  }
+  e.value = p.toString();
+  return p;
+}
+
+/**
+ * Set the value of an HTMLInputElement given by an id
+ *
+ * @param {string} id The id of the HTMLInputElement whose value should be set
+ * @param {any} value The value to set; the 'toString' method is invoked on this to create the value
+ */
 export function set_input_value(id: string, value: any): void {
   const e = document.getElementById(id);
   if (e instanceof HTMLInputElement) {
@@ -31,6 +98,12 @@ export function set_input_value(id: string, value: any): void {
   }
 }
 
+/**
+ * Set the 'checked' attribute of an HTMLInputElement to the provide true/false value
+ *
+ * @param {string} id The id of the HTMLInputElement whose checked should be set
+ * @param {boolean} checked The value to set the 'checked' attribute to
+ */
 export function set_input_checked(id: string, checked: boolean): void {
   const e = document.getElementById(id);
   if (e instanceof HTMLInputElement) {
@@ -38,6 +111,12 @@ export function set_input_checked(id: string, checked: boolean): void {
   }
 }
 
+/**
+ *
+ * @param id
+ * @param min
+ * @param max
+ */
 export function set_input_range(id: string, min: any, max: any): void {
   const e = document.getElementById(id);
   if (e instanceof HTMLInputElement) {
@@ -46,6 +125,11 @@ export function set_input_range(id: string, min: any, max: any): void {
   }
 }
 
+/**
+ *
+ * @param id
+ * @returns
+ */
 export function get_input_checked(id: string): boolean {
   const e = document.getElementById(id);
   if (e instanceof HTMLInputElement) {
@@ -55,6 +139,11 @@ export function get_input_checked(id: string): boolean {
   }
 }
 
+/**
+ *
+ * @param parent_id
+ * @returns
+ */
 export function get_input_radio_checked(parent_id: string): null | string {
   const e = document.getElementById(parent_id);
   if (e === null) {
@@ -68,6 +157,9 @@ export function get_input_radio_checked(parent_id: string): null | string {
   }
 }
 
+/**
+ *
+ */
 export class HtmlElement {
   ele: HTMLElement;
   constructor(ele: HTMLElement) {
@@ -248,14 +340,12 @@ export class HtmlElement {
   }
 }
 
-interface Table {
+export class Table {
   classes: string;
   headings: Array<HtmlElement>;
   heading_classes: string;
   body: Array<Array<HtmlElement>>;
-}
 
-class Table {
   constructor(classes: string) {
     this.classes = classes;
     this.headings = [];
@@ -294,25 +384,5 @@ class Table {
       }
     }
     return table;
-  }
-}
-
-function clear(id: Node) {
-  while (id.firstChild) {
-    id.removeChild(id.firstChild);
-  }
-}
-
-function add_ele(parent: Node, type: string, classes: string) {
-  const ele = document.createElement(type);
-  ele.className = classes;
-  parent.appendChild(ele);
-  return ele;
-}
-
-function if_ele_id(ele_id: string, v: any, f: any) {
-  const e = document.getElementById(ele_id);
-  if (e != null) {
-    f(e, v);
   }
 }
