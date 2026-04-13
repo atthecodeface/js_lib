@@ -1,0 +1,43 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    "rootDir": "./typescript/",
+    "outDir": "./http",
+
+    "target": "ES2015",
+    "sourceMap": true
+    "declaration": true,
+    "declarationMap": true,
+
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Style Options
+     "noImplicitReturns": true,
+     "noImplicitOverride": true,
+     "noUnusedLocals": true,
+     "noUnusedParameters": true,
+     "noFallthroughCasesInSwitch": true,
+     "noPropertyAccessFromIndexSignature": true,
+
+    // Recommended Options
+    "strict": true,
+    "jsx": "react-jsx",
+
+    // "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+  },
+
+  // "include": ["pkg/*"],
+
+  "files": [
+    "typescript/html.ts",
+    "typescript/log.ts",
+    "typescript/tabbed.ts",
+    "typescript/storage.ts",
+    ],
+}
