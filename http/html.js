@@ -1,15 +1,81 @@
-//mp position
-export function position(c, dp = 2) {
-  if (c.length == 3) {
-    c = [c[0].toFixed(dp), c[1].toFixed(dp), c[2].toFixed(dp)];
-    return `${c[0]}, ${c[1]}, ${c[2]}`;
-  } else {
-    c = [c[0].toFixed(dp), c[1].toFixed(dp)];
-    return `(${c[0]}, ${c[1]})`;
+export class Element {
+  constructor(ele) {
+    this.ele = ele;
+  }
+
+  static new_ele(ele_type, classes) {
+    const ele = document.createElement(ele_type);
+    ele.className = classes;
+    return new Element(ele);
+  }
+
+  clear() {
+    while (this.ele.firstChild) {
+      this.ele.removeChild(this.ele.firstChild);
+    }
+  }
+
+  add_ele(ele_type, classes) {
+    const ele = document.createElement(ele_type);
+    ele.className = classes;
+    this.ele.appendChild(ele);
+    return new Element(ele);
+  }
+
+  set_content(content) {
+    //console.log(this.ele);
+    if (content instanceof Node) {
+      this.ele.appendChild(content);
+    } else if (content instanceof Element) {
+      this.ele.appendChild(content.ele);
+    } else {
+      this.ele.innerText = content;
+    }
   }
 }
 
-//mp clear
+export class Table {
+  constructor(classes) {
+    this.classes = classes;
+    this.headings = [];
+    this.heading_classes = "";
+    this.body = [];
+  }
+
+  add_headings(headings) {
+    for (const h of headings) {
+      this.headings.push(h);
+    }
+  }
+
+  add_body(body_elements) {
+    this.body.push(body_elements);
+  }
+
+  as_html() {
+    const table = Element.new_ele("table", this.classes);
+
+    if (this.headings != []) {
+      const tr = table.add_ele("tr", this.heading_classes);
+      let i = 0;
+      for (const h of this.headings) {
+        const th = tr.add_ele("th", "th" + i);
+        th.set_content(h);
+        i += 1;
+      }
+    }
+
+    for (const c of this.body) {
+      const tr = table.add_ele("tr", "");
+      for (const d of c) {
+        const td = tr.add_ele("td", "");
+        td.set_content(d);
+      }
+    }
+    return table;
+  }
+}
+
 export function clear(id) {
   while (id.firstChild) {
     id.removeChild(id.firstChild);
@@ -58,13 +124,13 @@ export function table(table_classes, headings, contents) {
     tr = document.createElement("tr");
     for (const d of c) {
       const td = document.createElement("td");
-      console.log(typeof d);
+      // console.log(typeof d);
       if (typeof d === "string") {
         td.innerHTML = d;
-        tr.appendChild(td);
       } else {
-        tr.appendChild(d);
+        td.appendChild(d);
       }
+      tr.appendChild(td);
     }
     table.appendChild(tr);
   }

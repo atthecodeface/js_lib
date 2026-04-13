@@ -93,10 +93,11 @@ export class DBStorage {
    *
    * @param event
    */
-  constructor(db_name, callback) {
+  constructor(db_name, init_callback) {
     const DBOpenRequest = window.indexedDB.open(db_name, 1);
     this.db = null;
-    this.db_callback = callback;
+    this.db_init_callback = init_callback;
+    this.db_name = db_name;
     this.directory = new Directory();
     DBOpenRequest.onerror = (event) => {
       this.db_open_error(event);
@@ -121,7 +122,7 @@ export class DBStorage {
    */
   db_open_error(event) {
     console.error(`Error loading Fonts database: ${event}`);
-    this.db_callback(false);
+    this.db_init_callback(false);
   }
 
   /**
@@ -151,6 +152,7 @@ export class DBStorage {
     console.log("Database needs to be set up");
     this.db = event.target.result;
     if (!this.db.objectStoreNames.contains("storage")) {
+      console.log("Creating 'storage' in Fonts");
       this.db.createObjectStore("storage", { keyPath: "filename" });
     }
   }
@@ -167,7 +169,7 @@ export class DBStorage {
   db_open_success(event) {
     console.log("Database opened ok");
     this.db = event.target.result;
-    this.db_callback(true);
+    this.db_init_callback(true);
   }
 
   db_request_complete(success, callback, user_callback, data) {
@@ -180,10 +182,15 @@ export class DBStorage {
     const request = request_fn(storage);
 
     request.onsuccess = (result) => {
-      this.db_request_complete(true, callback, result, user_callback);
+      const db_result = result.target.result;
+      if (db_result) {
+        this.db_request_complete(true, callback, user_callback, db_result);
+      } else {
+        this.db_request_complete(false, callback, user_callback, null);
+      }
     };
     request.onerror = (error) => {
-      this.db_request_complete(false, callback, error, user_callback);
+      this.db_request_complete(false, callback, user_callback, error);
     };
   }
 
@@ -193,17 +200,21 @@ export class DBStorage {
     const request = request_fn(storage);
 
     request.onsuccess = (result) => {
-      this.db_request_complete(true, callback, result, user_callback);
+      this.db_request_complete(true, callback, user_callback, result);
     };
     request.onerror = (error) => {
-      this.db_request_complete(false, callback, error, user_callback);
+      this.db_request_complete(false, callback, user_callback, error);
     };
   }
 
-  request_get_file_list(callback) {
-    this.db_read_request((r) => {
-      return r.getAllKeys();
-    }, file_list_retrieved.bind(this));
+  request_get_file_list(user_callback) {
+    this.db_read_request(
+      (r) => {
+        return r.getAllKeys();
+      },
+      this.file_list_retrieved.bind(this),
+      user_callback,
+    );
   }
 
   request_load_file(filename, suffix, user_callback) {
@@ -211,21 +222,21 @@ export class DBStorage {
       (r) => {
         return r.get(filename);
       },
-      file_loaded.bind(this),
+      this.file_loaded.bind(this),
       user_callback,
     );
   }
 
-  request_save_file(suffix, filename, data, user_callback) {
+  request_save_file(filename, suffix, data, user_callback) {
     this.db_readwrite_request(
       (r) => {
         return r.put({
-          id: filename,
+          filename: filename,
           content: new Uint8Array(data),
           suffix: suffix,
         });
       },
-      file_saved.bind(this),
+      this.file_saved.bind(this),
       user_callback,
     );
   }
@@ -238,8 +249,11 @@ export class DBStorage {
     if (success) {
       console.log(`Retrieved file list ${result}`);
       this.directory.clear();
-      for (r of result) {
-        this.directory.add_file(r.filename, r.suffix);
+      if (!result) {
+      } else {
+        for (const r of result) {
+          this.directory.add_file(r, "ttf");
+        }
       }
     }
     user_callback(success);
@@ -250,7 +264,7 @@ export class DBStorage {
       console.log(`Retrieved file ${result}`);
       user_callback(result);
     } else {
-      console.log(`Failed to retrieved file ${result}`);
+      console.log(`Failed to retrieve file`);
       user_callback(null);
     }
   }
