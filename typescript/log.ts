@@ -1,4 +1,4 @@
-import { HtmlElement } from "./html.js";
+import { HtmlElement } from "./html";
 
 /** Severity for a log entry */
 export enum Severity {
@@ -159,7 +159,7 @@ export class Logger {
     this.message(Severity.Fatal, reason, message);
   }
 }
-console.log("bah");
+
 export class Log {
   log: Array<LogEntry>;
   div: HtmlElement | null = null;
@@ -169,19 +169,21 @@ export class Log {
 
   /** Create a new Log that will fill the given 'div' which has an 'id' of div_id
    *
-   * @param {string}  div_id  'id' of div to place the log into; if none is provided then logging is only to the console
+   * @param {HtmlElement | string}  div an HtmlElement, or 'id' of a div in the document, to place the log into; if none is provided then logging is only to the console
    */
   constructor(
-    div_id?: string,
+    div?: HtmlElement | string,
     min_severity: Severity = Severity.Info,
     console_min_severty: Severity = Severity.Warning,
   ) {
     this.log = [];
 
-    if (div_id) {
-      const div = document.getElementById(div_id);
-      if (div instanceof HTMLDivElement) {
-        this.div = new HtmlElement(div);
+    if (div instanceof HtmlElement) {
+      this.div = div;
+    } else if (div) {
+      const div_ele = document.getElementById(div);
+      if (div_ele instanceof HTMLDivElement) {
+        this.div = new HtmlElement(div_ele);
       }
     }
 
@@ -218,6 +220,7 @@ export class Log {
   }
 
   fill_div() {
+    this.refill_pending = false;
     if (this.div === null) return;
     this.div.clear();
     const table = this.div.add_ele("table", "log_table");
