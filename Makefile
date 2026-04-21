@@ -9,6 +9,13 @@ help:
 	@echo "    npm install typescript"
 	@echo ""
 	@echo "To use the compiler (tsc) use : npx tsc"
+	@echo ""
+	@echo "To install jest"
+	@echo "    npm install --save-dev jest ts-jest @types/jest"
+	@echo "    npm install jest-environment-jsdom --save-dev"
 
 js:
 	npx tsc -b
+
+test:
+	npm test
