@@ -30,6 +30,8 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+    "module": "node16",
+    "moduleResolution": "node16",
   },
 
   // "include": ["pkg/*"],
