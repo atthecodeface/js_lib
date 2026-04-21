@@ -1,3 +1,4 @@
+"use strict";
 /**
  * This contains Directory, LocalStorage
  */
@@ -10,12 +11,14 @@
  * 31 March: Directory methods take files in root, suffix rather than the other ways round
  *
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LocalStorage = exports.Directory = void 0;
 /**
  * A directory that contains sets of files identified by the 'root' with specific 'suffixes'
  *
  * The aim is to provide a simple means to list files of a specific 'suffix'
  */
-export class Directory {
+class Directory {
     /**
      * Create a new Directory with no contents
      */
@@ -95,11 +98,12 @@ export class Directory {
         return file_set.keys();
     }
 }
+exports.Directory = Directory;
 /**
  * A class that manages local storage using a 'prefix' into the actual storage (to permit more than one such class with an 'application')
  *
  */
-export class LocalStorage {
+class LocalStorage {
     /**
      * Construct a new LocalStorage for a given prefix, and retrieve the directory contents
      *
@@ -189,4 +193,5 @@ export class LocalStorage {
         return this.directory;
     }
 }
+exports.LocalStorage = LocalStorage;
 //# sourceMappingURL=storage.js.map

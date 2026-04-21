@@ -1,3 +1,4 @@
+"use strict";
 /**
  * History
  *
@@ -14,6 +15,15 @@
  * 31 March: Directory methods take files in root, suffix rather than the other ways round
  *
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Table = exports.HtmlElement = void 0;
+exports.get_input_float = get_input_float;
+exports.get_input_int = get_input_int;
+exports.set_input_value = set_input_value;
+exports.set_input_checked = set_input_checked;
+exports.set_input_range = set_input_range;
+exports.get_input_checked = get_input_checked;
+exports.get_input_radio_checked = get_input_radio_checked;
 /**
  * Get the value of a float fron an HTMLInputElement, bounded by min and max,
  * with a default of the ID cannot be found
@@ -24,7 +34,7 @@
  * @param {number} deflt? Optional default value to return if the ID does not correspond to an HTMLInputElement
  * @returns {number} the value in the HTMLInputElement bounded by min and max, or the default value. It updates the value in the HTMLInputElement.
  **/
-export function get_input_float(id, min, max, deflt) {
+function get_input_float(id, min, max, deflt) {
     const e = document.getElementById(id);
     if (!(e instanceof HTMLInputElement)) {
         if (deflt !== undefined) {
@@ -54,7 +64,7 @@ export function get_input_float(id, min, max, deflt) {
  * @param {number} deflt? Optional default value to return if the ID does not correspond to an HTMLInputElement
  * @returns {number} the value in the HTMLInputElement bounded by min and max, or the default value. It updates the value in the HTMLInputElement.
  */
-export function get_input_int(id, min, max, deflt) {
+function get_input_int(id, min, max, deflt) {
     const e = document.getElementById(id);
     if (!(e instanceof HTMLInputElement)) {
         if (deflt !== undefined) {
@@ -80,7 +90,7 @@ export function get_input_int(id, min, max, deflt) {
  * @param {string} id The id of the HTMLInputElement whose value should be set
  * @param {any} value The value to set; the 'toString' method is invoked on this to create the value
  */
-export function set_input_value(id, value) {
+function set_input_value(id, value) {
     const e = document.getElementById(id);
     if (e instanceof HTMLInputElement) {
         e.value = value.toString();
@@ -92,7 +102,7 @@ export function set_input_value(id, value) {
  * @param {string} id The id of the HTMLInputElement whose checked should be set
  * @param {boolean} checked The value to set the 'checked' attribute to
  */
-export function set_input_checked(id, checked) {
+function set_input_checked(id, checked) {
     const e = document.getElementById(id);
     if (e instanceof HTMLInputElement) {
         e.checked = checked;
@@ -104,7 +114,7 @@ export function set_input_checked(id, checked) {
  * @param min
  * @param max
  */
-export function set_input_range(id, min, max) {
+function set_input_range(id, min, max) {
     const e = document.getElementById(id);
     if (e instanceof HTMLInputElement) {
         e.min = min.toString();
@@ -116,7 +126,7 @@ export function set_input_range(id, min, max) {
  * @param id
  * @returns
  */
-export function get_input_checked(id) {
+function get_input_checked(id) {
     const e = document.getElementById(id);
     if (e instanceof HTMLInputElement) {
         return e.checked;
@@ -130,7 +140,7 @@ export function get_input_checked(id) {
  * @param parent_id
  * @returns
  */
-export function get_input_radio_checked(parent_id) {
+function get_input_radio_checked(parent_id) {
     const e = document.getElementById(parent_id);
     if (e === null) {
         return null;
@@ -146,7 +156,7 @@ export function get_input_radio_checked(parent_id) {
 /**
  *
  */
-export class HtmlElement {
+class HtmlElement {
     constructor(ele) {
         this.ele = ele;
     }
@@ -162,12 +172,12 @@ export class HtmlElement {
             this.ele.removeChild(this.ele.firstChild);
         }
     }
-    add_ele(ele_type, id, classes) {
+    add_ele(ele_type, id = "", classes) {
         const ele = document.createElement(ele_type);
-        if (id !== undefined) {
+        if (id != "") {
             ele.setAttribute("id", id);
         }
-        if (classes) {
+        if (classes !== undefined) {
             ele.className = classes;
         }
         this.ele.appendChild(ele);
@@ -296,7 +306,8 @@ export class HtmlElement {
         }
     }
 }
-export class Table {
+exports.HtmlElement = HtmlElement;
+class Table {
     constructor(classes) {
         this.classes = classes;
         this.headings = [];
@@ -332,4 +343,5 @@ export class Table {
         return table;
     }
 }
+exports.Table = Table;
 //# sourceMappingURL=html.js.map

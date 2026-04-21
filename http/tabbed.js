@@ -1,3 +1,4 @@
+"use strict";
 /**
  * History:
  *
@@ -8,6 +9,8 @@
  *   Requires a top level Tabs() creation from init complete
  *
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Tabs = void 0;
 /**
  * A 'tab' in a tabbed page
  */
@@ -82,7 +85,7 @@ class Tab {
 /**
  * A class that handles a set of Tabs, only one of which should be selected, and that will become 'unhidden' while the others are 'hidden'
  */
-export class Tabs {
+class Tabs {
     /**
      * Create a new set of tabs whose tab list can be selected with 'container_select'
      *
@@ -165,4 +168,5 @@ export class Tabs {
         return this.selected_tab_number;
     }
 }
+exports.Tabs = Tabs;
 //# sourceMappingURL=tabbed.js.map
