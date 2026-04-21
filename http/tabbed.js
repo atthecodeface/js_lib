@@ -49,7 +49,7 @@ class Tab {
         this.div_id = div_id;
         this.div = div;
         a.onclick = (e) => {
-            this.tabs.hash_change(this.div_id);
+            this.tabs.select_hash(this.div_id);
             e.preventDefault();
         };
     }
@@ -93,9 +93,9 @@ class Tabs {
      * turn has 'li' for each tab, with each 'li' having an 'a' with an 'href'
      * identifying the tab it is associated with.
      */
-    constructor(container_select, callback) {
+    constructor(container_select, tab_select_callback) {
         this.tabs = [];
-        this.callback = callback;
+        this.callback = tab_select_callback;
         var errored = undefined;
         const tab_list = document.querySelector(container_select);
         if (tab_list === null) {
@@ -136,24 +136,23 @@ class Tabs {
      * identifying the tab it is associated with.
      */
     post_init() {
-        const me = this;
         window.addEventListener("hashchange", () => {
-            me.hash_change(location.hash);
+            this.select_hash(location.hash);
         });
-        if (this.hash_change(location.hash) === undefined) {
-            this.select_tab(0);
+        if (this.select_hash(location.hash) === undefined) {
+            this.select_tab_number(0);
         }
     }
     /// Invoked when an <a href='#...'> link is selected
-    hash_change(hash_name) {
+    select_hash(hash_name) {
         for (const t of this.tabs) {
             if (t.has_hash(hash_name)) {
-                return this.select_tab(t.num);
+                return this.select_tab_number(t.num);
             }
         }
         return undefined;
     }
-    select_tab(tab_number) {
+    select_tab_number(tab_number) {
         if (tab_number >= this.tabs.length) {
             tab_number = 0;
         }
