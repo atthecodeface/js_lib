@@ -39,6 +39,7 @@
   "files": [
     "typescript/html.ts",
     "typescript/log.ts",
+    "typescript/animate.ts",
     "typescript/tabbed.ts",
     "typescript/storage.ts",
   ],
