@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 
-const log = require("./log");
-const html = require("./html");
+import * as html from "./html";
+import * as log from "./log";
 
 test("Severity levels", () => {
   expect(log.Severity.Verbose < log.Severity.Info).toBe(true);

@@ -223,9 +223,9 @@ export class Log {
     this.refill_pending = false;
     if (this.div === null) return;
     this.div.clear();
-    const table = this.div.add_ele("table", "log_table");
+    const table = this.div.add_ele("table", { id: "log_table" });
     for (const e of this.log) {
-      const tr = table.add_ele("tr", `log_entry_${e.severity}`);
+      const tr = table.add_ele("tr", { classes: `log_entry_${e.severity}` });
       tr.add_ele("th").set_content(e.severity);
       tr.add_ele("td").set_content(e.src.src);
       tr.add_ele("td").set_content(e.reason);
