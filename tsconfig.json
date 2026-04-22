@@ -43,7 +43,5 @@
     "typescript/animate.ts",
     "typescript/tabbed.ts",
     "typescript/storage.ts",
-
-    "typescript/tabbed.test.ts",
   ],
 }
