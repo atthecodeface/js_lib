@@ -85,9 +85,9 @@ class Tab {
   }
 
   /**
-   * Return the 'id' of this tab - currently this is the 'div_id' property
+   * Return the 'hash' of this tab - currently this is the 'div_id' property
    */
-  id() {
+  hash() {
     return this.div_id;
   }
 
@@ -222,7 +222,7 @@ export class Tabs {
       t.set_hidden(t.num != tab_number);
     }
     this.selected_tab_number = tab_number;
-    this.callback(this.tabs[this.selected_tab_number]!.id());
+    this.callback(this.tabs[this.selected_tab_number]!.hash());
     return this.selected_tab_number;
   }
 }
