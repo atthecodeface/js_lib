@@ -1,4 +1,4 @@
-import { HtmlElement } from "./html";
+import { HtmlElement } from "./html.js";
 
 /** Severity for a log entry */
 export enum Severity {

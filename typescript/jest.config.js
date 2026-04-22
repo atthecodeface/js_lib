@@ -8,4 +8,8 @@ module.exports = {
   transform: {
     ...tsJestTransformCfg,
   },
+  /* This maps import 'module.js' to import 'module' which works with jest */
+  moduleNameMapper: {
+    "(.+)\\.js": "$1",
+  },
 };
