@@ -13,9 +13,13 @@ help:
 	@echo "To install jest"
 	@echo "    npm install --save-dev jest ts-jest @types/jest"
 	@echo "    npm install jest-environment-jsdom --save-dev"
+	@echo "    npm i --save-dev @types/node"
+
+all:
+	$(MAKE) js test
 
 js:
 	npx tsc -b
 
 test:
-	npm test
+	(cd typescript; npm test)
