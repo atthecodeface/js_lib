@@ -153,33 +153,36 @@ function get_input_radio_checked(parent_id) {
         return null;
     }
 }
-/**
- *
- */
 class HtmlElement {
+    static set_id_classes(doc_ele, id_classes) {
+        if (id_classes.id !== undefined) {
+            doc_ele.id = id_classes.id;
+        }
+        if (id_classes.classes !== undefined) {
+            doc_ele.className = id_classes.classes;
+        }
+        if (id_classes.tag_values !== undefined) {
+            for (const [tag, value] of id_classes.tag_values) {
+                doc_ele.setAttribute(tag, value);
+            }
+        }
+    }
+    static new_ele(ele_type, id_classes = {}) {
+        const ele = document.createElement(ele_type);
+        HtmlElement.set_id_classes(ele, id_classes);
+        return new HtmlElement(ele);
+    }
     constructor(ele) {
         this.ele = ele;
-    }
-    static new_ele(ele_type, classes) {
-        const ele = document.createElement(ele_type);
-        if (classes) {
-            ele.className = classes;
-        }
-        return new HtmlElement(ele);
     }
     clear() {
         while (this.ele.firstChild) {
             this.ele.removeChild(this.ele.firstChild);
         }
     }
-    add_ele(ele_type, id = "", classes) {
+    add_ele(ele_type, id_classes = {}) {
         const ele = document.createElement(ele_type);
-        if (id != "") {
-            ele.setAttribute("id", id);
-        }
-        if (classes !== undefined) {
-            ele.className = classes;
-        }
+        HtmlElement.set_id_classes(ele, id_classes);
         this.ele.appendChild(ele);
         return new HtmlElement(ele);
     }
@@ -189,34 +192,24 @@ class HtmlElement {
         }
         return this;
     }
-    add_input_button(value, callback, id, classes) {
+    add_input_button(value, callback, id_classes = {}) {
         const input = document.createElement("input");
         input.setAttribute("type", "button");
         input.setAttribute("value", value);
         input.onclick = callback;
-        if (id) {
-            input.id = id;
-        }
-        if (classes) {
-            input.className = classes;
-        }
+        HtmlElement.set_id_classes(input, id_classes);
         this.ele.appendChild(input);
         return new HtmlElement(input);
     }
-    add_input_checkbox(name, id, classes) {
+    add_input_checkbox(name, id_classes = {}) {
         const input = document.createElement("input");
         input.setAttribute("type", "checkbox");
         input.setAttribute("name", name);
-        if (id) {
-            input.id = id;
-        }
-        if (classes) {
-            input.className = classes;
-        }
+        HtmlElement.set_id_classes(input, id_classes);
         this.ele.appendChild(input);
         return new HtmlElement(input);
     }
-    add_input_radio(name, value, required, id, classes) {
+    add_input_radio(name, value, required, id_classes = {}) {
         const input = document.createElement("input");
         input.setAttribute("type", "radio");
         input.setAttribute("name", name);
@@ -224,57 +217,57 @@ class HtmlElement {
         if (required) {
             input.setAttribute("required", "true");
         }
-        if (id) {
-            input.id = id;
-        }
-        if (classes) {
-            input.className = classes;
-        }
+        HtmlElement.set_id_classes(input, id_classes);
         this.ele.appendChild(input);
         return new HtmlElement(input);
     }
-    add_input_range(name, value, min, max, callback, id, classes) {
+    add_input_range(name, range, callback, id_classes = {}) {
+        var value = range.min;
+        var step = 1;
+        if (range.value !== undefined) {
+            value = range.value;
+        }
+        if (range.step !== undefined) {
+            step = range.step;
+        }
         const input = document.createElement("input");
         input.setAttribute("type", "range");
         input.setAttribute("name", name);
-        input.setAttribute("value", value);
-        input.setAttribute("min", min);
-        input.setAttribute("max", max);
+        input.setAttribute("value", value.toString());
+        input.setAttribute("min", range.min.toString());
+        input.setAttribute("max", range.max.toString());
+        input.setAttribute("step", step.toString());
         // const x: HTMLInputElement = new HTMLInputElement();
         // x.on
-        input.oninput = callback;
-        if (id) {
-            input.id = id;
-        }
-        if (classes) {
-            input.className = classes;
-        }
+        input.oninput = (e) => {
+            var value;
+            if (step == 1) {
+                value = Number.parseFloat(input.value);
+            }
+            else {
+                value = Number.parseFloat(input.value);
+            }
+            callback(e, value);
+        };
+        HtmlElement.set_id_classes(input, id_classes);
         this.ele.appendChild(input);
         return new HtmlElement(input);
     }
-    add_input_text(name, value, id, classes) {
+    add_input_text(name, value, id_classes = {}) {
         const input = document.createElement("input");
         input.setAttribute("type", "text");
         input.setAttribute("name", name);
         input.setAttribute("value", value);
-        if (id) {
-            input.id = id;
-        }
-        if (classes) {
-            input.className = classes;
-        }
+        HtmlElement.set_id_classes(input, id_classes);
         this.ele.appendChild(input);
         return new HtmlElement(input);
     }
-    add_label(for_input, id, classes) {
+    add_label(for_input, id_classes = {}) {
         const label = document.createElement("label");
-        label.setAttribute("for", for_input);
-        if (id) {
-            label.id = id;
+        if (for_input) {
+            label.setAttribute("for", for_input);
         }
-        if (classes) {
-            label.className = classes;
-        }
+        HtmlElement.set_id_classes(label, id_classes);
         this.ele.appendChild(label);
         return new HtmlElement(label);
     }
@@ -323,12 +316,12 @@ class Table {
         this.body.push(body_elements);
     }
     as_html() {
-        const table = HtmlElement.new_ele("table", this.classes);
+        const table = HtmlElement.new_ele("table", { classes: this.classes });
         if (this.headings.length > 0) {
-            const tr = table.add_ele("tr", "", this.heading_classes);
+            const tr = table.add_ele("tr", { classes: this.heading_classes });
             let i = 0;
             for (const h of this.headings) {
-                const th = tr.add_ele("th", "th" + i);
+                const th = tr.add_ele("th", { id: "th" + i });
                 th.set_content(h);
                 i += 1;
             }
