@@ -2,7 +2,7 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     "rootDir": "./typescript/",
-    "outDir": "./http",
+    "outDir": "./javascript/",
 
     "target": "ES2015",
     "sourceMap": true,
@@ -32,6 +32,7 @@
     "skipLibCheck": true,
     "module": "node16",
     "moduleResolution": "node16",
+    "types": ["node", "jest"],
   },
 
   // "include": ["pkg/*"],
@@ -42,5 +43,7 @@
     "typescript/animate.ts",
     "typescript/tabbed.ts",
     "typescript/storage.ts",
+
+    "typescript/tabbed.test.ts",
   ],
 }
