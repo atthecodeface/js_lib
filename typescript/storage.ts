@@ -2,7 +2,6 @@
  * This contains Directory, LocalStorage
  */
 
-import { userInfo } from "os";
 import { Log, Logger } from "./log.js";
 
 /* History
@@ -512,13 +511,11 @@ export class DBStorage implements FileStorage<Uint8Array> {
     request.onsuccess = (_event: Event) => {
       // const db_result = result.target.result;
       const db_result = request.result;
-      if (db_result) {
-        this.db_request_complete(true, callback, user_callback, db_result);
-      } else {
-        this.db_request_complete(false, callback, user_callback, null);
-      }
+      // console.log("onsuccess", request);
+      this.db_request_complete(true, callback, user_callback, db_result);
     };
     request.onerror = (error: Event) => {
+      // console.log("onerror", error);
       this.db_request_complete(false, callback, user_callback, error);
     };
   }
@@ -539,13 +536,8 @@ export class DBStorage implements FileStorage<Uint8Array> {
     const request = request_fn(storage);
 
     request.onsuccess = (_event: Event) => {
-      // const db_result = result.target.result;
       const db_result = request.result;
-      if (db_result) {
-        this.db_request_complete(true, callback, user_callback, db_result);
-      } else {
-        this.db_request_complete(false, callback, user_callback, null);
-      }
+      this.db_request_complete(true, callback, user_callback, db_result);
     };
     request.onerror = (error: Event) => {
       this.db_request_complete(false, callback, user_callback, error);
@@ -582,7 +574,7 @@ export class DBStorage implements FileStorage<Uint8Array> {
         `DBStorage ${this.db_name} retrieved file list with success ${success}`,
       );
     }
-    if (success) {
+    if (success && result !== undefined) {
       //console.log(`Retrieved file list ${result}`);
       this.directory.clear();
       if (result) {
@@ -590,8 +582,10 @@ export class DBStorage implements FileStorage<Uint8Array> {
           this.directory.add_file(filename);
         }
       }
+      user_callback(true);
+    } else {
+      user_callback(false);
     }
-    user_callback(success);
   }
 
   /**
@@ -608,7 +602,7 @@ export class DBStorage implements FileStorage<Uint8Array> {
    */
   request_load_file(
     filename: string,
-    user_callback: (data: any) => void,
+    user_callback: (data: Uint8Array | null) => void,
   ): void {
     this.db_read_request(
       (r) => {
@@ -620,7 +614,7 @@ export class DBStorage implements FileStorage<Uint8Array> {
   }
 
   private file_loaded(
-    user_callback: (data: any) => void,
+    user_callback: (data: Uint8Array | null) => void,
     success: boolean,
     result: any,
   ): void {
@@ -629,8 +623,9 @@ export class DBStorage implements FileStorage<Uint8Array> {
         `DBStorage ${this.db_name} loaded file with success ${success}`,
       );
     }
-    if (success) {
-      user_callback(result);
+
+    if (success && result !== undefined) {
+      user_callback(result.content);
     } else {
       user_callback(null);
     }
@@ -649,17 +644,14 @@ export class DBStorage implements FileStorage<Uint8Array> {
    */
   request_save_file(
     filename: string,
-    data: any,
+    data: Uint8Array,
     user_callback: (success: boolean) => void,
   ): void {
     this.db_readwrite_request(
       (r) => {
-        const content = new Uint8Array(data);
-        console.log(data, content, typeof data);
         return r.put({
           filename: filename,
-          content: content,
-          // suffix: suffix,
+          content: data,
         });
       },
       this.file_saved.bind(this),
@@ -671,14 +663,14 @@ export class DBStorage implements FileStorage<Uint8Array> {
   private file_saved(
     user_callback: (data: any) => void,
     success: boolean,
-    _result: any,
+    result: any,
   ): void {
     if (this.logger) {
       this.logger!.verbose(
         `DBStorage ${this.db_name} saved file with success ${success}`,
       );
     }
-    user_callback(success);
+    user_callback(success && result !== undefined);
   }
 
   /**
@@ -703,6 +695,7 @@ export class DBStorage implements FileStorage<Uint8Array> {
       this.file_deleted.bind(this),
       user_callback,
     );
+    this.directory.delete_file(filename);
   }
 
   private file_deleted(
@@ -715,6 +708,7 @@ export class DBStorage implements FileStorage<Uint8Array> {
         `DBStorage ${this.db_name} deleted file with success ${success}`,
       );
     }
+    // _result is undefined for a 'delete' IDbRequest
     user_callback(success);
   }
 

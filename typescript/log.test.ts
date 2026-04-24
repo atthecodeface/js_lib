@@ -33,10 +33,10 @@ test("Log creation", () => {
   l.request_fill_div();
 
   expect(console_logs).toEqual([
-    "Log: 2 : src1 : the level : Info",
-    "Log: 3 : src1 : the level : Warning",
-    "Log: 4 : src1 : the level : Error",
-    "Log: 5 : src1 : the level : Fatal",
+    "Log: Info : src1 : the level : Info",
+    "Log: Warning : src1 : the level : Warning",
+    "Log: Error : src1 : the level : Error",
+    "Log: Fatal : src1 : the level : Fatal",
   ]);
 });
 

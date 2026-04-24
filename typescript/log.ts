@@ -234,7 +234,9 @@ export class Log {
       this.request_fill_div();
     }
     if (severity >= this.console_min_severity) {
-      console.log(`Log: ${severity} : ${src.src} : ${reason} : ${error}`);
+      console.log(
+        `Log: ${LogEntry.severity_to_string(severity)} : ${src.src} : ${reason} : ${error}`,
+      );
     }
   }
 
