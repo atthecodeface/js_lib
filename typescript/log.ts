@@ -38,6 +38,29 @@ class LogEntry {
     this.reason = reason;
     this.message = message;
   }
+  severity_as_string(): String {
+    return LogEntry.severity_to_string(this.severity);
+  }
+
+  static severity_to_string(s: Severity): String {
+    switch (s) {
+      case Severity.Verbose: {
+        return "Verbose";
+      }
+      case Severity.Info: {
+        return "Info";
+      }
+      case Severity.Warning: {
+        return "Warning";
+      }
+      case Severity.Error: {
+        return "Error";
+      }
+      default: {
+        return "Fatal";
+      }
+    }
+  }
 }
 
 /** This class is a source for a Log
@@ -226,7 +249,7 @@ export class Log {
     const table = this.div.add_ele("table", { id: "log_table" });
     for (const e of this.log) {
       const tr = table.add_ele("tr", { classes: `log_entry_${e.severity}` });
-      tr.add_ele("th").set_content(e.severity);
+      tr.add_ele("th").set_content(e.severity_as_string());
       tr.add_ele("td").set_content(e.src.src);
       tr.add_ele("td").set_content(e.reason);
       tr.add_ele("td").set_content(e.message);
