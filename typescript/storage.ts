@@ -131,7 +131,7 @@ export class Directory {
   }
 }
 
-export interface FileStorage {
+export interface FileStorage<Data> {
   /**
    * Delete a file from Storage
    *
@@ -180,11 +180,14 @@ export interface FileStorage {
    *
    * @param {string} filename  The file to load
    *
-   * @param {(data: any) => void} user_callback Invoked with the data (on
+   * @param {(data: Data) => void} user_callback Invoked with the data (on
    * success) or null (on failure) when the data is loaded
    *
    */
-  request_load_file(filename: string, user_callback: (data: any) => void): void;
+  request_load_file(
+    filename: string,
+    user_callback: (data: Data | null) => void,
+  ): void;
 
   /**
    * Request to save a file to Storage, and invoke callback when it completes (with an indication of success or failure)
@@ -199,7 +202,7 @@ export interface FileStorage {
    */
   request_save_file(
     filename: string,
-    data: any,
+    data: Data,
     user_callback: (success: boolean) => void,
   ): void;
 
@@ -214,7 +217,7 @@ export interface FileStorage {
  * A class that manages local storage using a 'prefix' into the actual storage (to permit more than one such class with an 'application')
  *
  */
-export class LocalStorage implements FileStorage {
+export class LocalStorage implements FileStorage<string> {
   /**
    * The storage this is associated with
    *
@@ -267,7 +270,7 @@ export class LocalStorage implements FileStorage {
    * This does not check to see if it is in the directory - it goes straight to the storage
    *
    */
-  load_file(filename: string): any {
+  load_file(filename: string): string | null {
     if (!this.directory.contains_file(filename)) {
       return null;
     }
@@ -281,7 +284,7 @@ export class LocalStorage implements FileStorage {
    * This will add the file to the directory as well as storing it
    *
    */
-  save_file(filename: string, data: any) {
+  save_file(filename: string, data: string) {
     let f = this.prefix + filename;
     this.storage.setItem(f, data);
     this.directory.add_file(filename);
@@ -321,6 +324,10 @@ export class LocalStorage implements FileStorage {
       return;
     }
     let data = this.load_file(old_filename);
+    if (data === null) {
+      user_callback(false);
+      return;
+    }
     this.save_file(new_filename, data);
     this.delete_file(old_filename);
     user_callback(true);
@@ -344,7 +351,7 @@ export class LocalStorage implements FileStorage {
    */
   request_load_file(
     filename: string,
-    user_callback: (data: any) => void,
+    user_callback: (data: string | null) => void,
   ): void {
     const data = this.load_file(filename);
     user_callback(data);
@@ -358,7 +365,7 @@ export class LocalStorage implements FileStorage {
    */
   request_save_file(
     filename: string,
-    data: any,
+    data: string,
     user_callback: (success: boolean) => void,
   ) {
     this.save_file(filename, data);
@@ -374,7 +381,7 @@ export class LocalStorage implements FileStorage {
   }
 }
 
-export class DBStorage implements FileStorage {
+export class DBStorage implements FileStorage<Uint8Array> {
   private db_name: string;
   private db_open_request: IDBOpenDBRequest;
   private db: null | IDBDatabase;
