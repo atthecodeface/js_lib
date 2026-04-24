@@ -90,8 +90,13 @@ export class Animate {
   /**
    * Restart an animation, specifying a start callback
    */
-  restart(delay_ms: number = 0, start_cb: (time: number) => void) {
+  restart(
+    delay_ms: number = 0,
+    start_cb: null | ((time: number) => void) = null,
+  ) {
     this.start_cb = start_cb;
+    // Set start_time_ms in case start_cb is null
+    this.start_time_ms = performance.now();
     this.schedule(delay_ms);
   }
 
