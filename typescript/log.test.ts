@@ -14,6 +14,9 @@ test("Severity levels", () => {
 
 test("Log creation", () => {
   const l = new log.Log(undefined, log.Severity.Error, log.Severity.Info);
+  const console_logs: Array<string> = [];
+  jest.spyOn(console, "log").mockImplementation((a) => console_logs.push(a));
+
   const logger = new log.Logger(l, "src1");
   logger.push_reason("Far too high a level");
   logger.push_reason("the level");
@@ -28,6 +31,13 @@ test("Log creation", () => {
   logger.fatal("Fatal");
   expect(l.is_empty()).toBe(false);
   l.request_fill_div();
+
+  expect(console_logs).toEqual([
+    "Log: 2 : src1 : the level : Info",
+    "Log: 3 : src1 : the level : Warning",
+    "Log: 4 : src1 : the level : Error",
+    "Log: 5 : src1 : the level : Fatal",
+  ]);
 });
 
 test("Log output", () => {

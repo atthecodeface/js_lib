@@ -2,6 +2,8 @@
 /**
  * This contains Directory, LocalStorage
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LocalStorage = exports.Directory = void 0;
 /* History
  *
  * 12 April:
@@ -11,8 +13,6 @@
  * 31 March: Directory methods take files in root, suffix rather than the other ways round
  *
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LocalStorage = exports.Directory = void 0;
 /**
  * A directory that contains sets of files identified by the 'root' with specific 'suffixes'
  *
@@ -28,14 +28,14 @@ class Directory {
     /**
      * Split the filename into a root and suffix
      */
-    static split_filename(filename) {
+    split_filename(filename) {
         const suffix = filename.split(".").pop();
         if (suffix) {
             const root = filename.slice(0, -suffix.length - 1);
             return [root, suffix];
         }
         else {
-            return null;
+            return [filename, ""];
         }
     }
     /**
@@ -51,7 +51,10 @@ class Directory {
      * @param suffix The suffix (type) of the file
      * @return True if the file 'root.suffix' is in the directory
      */
-    contains_file(root, suffix) {
+    contains_file(root, suffix = "") {
+        if (suffix == "") {
+            [root, suffix] = this.split_filename(root);
+        }
         if (!this.files.has(suffix)) {
             return false;
         }
@@ -63,11 +66,21 @@ class Directory {
      * @param root The root (basename) of the file
      * @param suffix The suffix (type) of the file
      */
-    add_file(root, suffix) {
+    add_file(root, suffix = "") {
+        if (suffix == "") {
+            [root, suffix] = this.split_filename(root);
+        }
         if (!this.files.has(suffix)) {
             this.files.set(suffix, new Set());
         }
-        this.files.get(suffix).add(root);
+        const files_of_suffix = this.files.get(suffix);
+        if (files_of_suffix.has(root)) {
+            return false;
+        }
+        else {
+            files_of_suffix.add(root);
+            return true;
+        }
     }
     /**
      * Remove a file from the directory; if it does not exist, then do nothing
@@ -75,27 +88,33 @@ class Directory {
      * @param root The root (basename) of the file
      * @param suffix The suffix (type) of the file
      */
-    delete_file(root, suffix) {
-        if (!this.files.has(suffix)) {
-            return;
+    delete_file(root, suffix = "") {
+        if (suffix == "") {
+            [root, suffix] = this.split_filename(root);
         }
-        this.files.get(suffix).delete(root);
-        if (this.files.get(suffix).size == 0) {
+        if (!this.files.has(suffix)) {
+            return false;
+        }
+        const files_of_suffix = this.files.get(suffix);
+        const has_file = files_of_suffix.has(root);
+        files_of_suffix.delete(root);
+        if (files_of_suffix.size == 0) {
             this.files.delete(suffix);
         }
+        return has_file;
     }
     /**
-     * Retrieve all of the files with a particular suffix in this Directory
+     *  Retrieve all of the files with a particular suffix in this Directory
      *
-     * @param suffix The suffix (type) of the file
-     * @returns Set Iterator of all the root names of the files with the given suffix in the Directory
+     * @param {string} suffix The suffix (type) of the file
+     * @return {Set<string>} Set of all the root names of the files with the given suffix in the Directory
      */
     files_of_type(suffix) {
         const file_set = this.files.get(suffix);
         if (!file_set) {
-            return null;
+            return new Set();
         }
-        return file_set.keys();
+        return file_set;
     }
 }
 exports.Directory = Directory;
@@ -126,10 +145,7 @@ class LocalStorage {
             let k = this.storage.key(i);
             if (k.startsWith(this.prefix)) {
                 const f = k.slice(pl);
-                const s_r = Directory.split_filename(f);
-                if (s_r) {
-                    this.directory.add_file(s_r[0], s_r[1]);
-                }
+                this.directory.add_file(f);
             }
         }
     }
@@ -139,8 +155,11 @@ class LocalStorage {
      * This does not check to see if it is in the directory - it goes straight to the storage
      *
      */
-    load_file(root, suffix) {
-        let f = this.prefix + root + "." + suffix;
+    load_file(filename) {
+        if (!this.directory.contains_file(filename)) {
+            return null;
+        }
+        let f = this.prefix + filename;
         return this.storage.getItem(f);
     }
     /**
@@ -149,30 +168,55 @@ class LocalStorage {
      * This will add the file to the directory as well as storing it
      *
      */
-    save_file(root, suffix, data) {
-        let f = this.prefix + root + "." + suffix;
+    save_file(filename, data) {
+        let f = this.prefix + filename;
         this.storage.setItem(f, data);
-        this.directory.add_file(root, suffix);
+        this.directory.add_file(filename);
     }
     /**
      * Delete a file from Storage
      *
      * This will remove the file from the directory as well as deleting it
      *
+     * Returns true if the file was in the storage
      */
-    delete_file(root, suffix) {
-        let f = this.prefix + root + "." + suffix;
+    delete_file(filename) {
+        let f = this.prefix + filename;
         this.storage.removeItem(f);
-        this.directory.delete_file(root, suffix);
+        return this.directory.delete_file(filename);
+    }
+    /**
+     * Request to get the file list
+     *
+     */
+    request_get_file_list(user_callback) {
+        user_callback(true);
+    }
+    request_rename_file(old_filename, new_filename, user_callback) {
+        if (!this.directory.contains_file(old_filename) ||
+            this.directory.contains_file(new_filename)) {
+            user_callback(false);
+            return;
+        }
+        let data = this.load_file(old_filename);
+        this.save_file(new_filename, data);
+        this.delete_file(old_filename);
+        user_callback(true);
+    }
+    /**
+     * Request to delete a file from Storage, and invoke callback when it completes
+     *
+     */
+    request_delete_file(filename, user_callback) {
+        const success = this.delete_file(filename);
+        user_callback(success);
     }
     /**
      * Request to load a file from Storage, and invoke callback when it completes
      *
-     * This does not check to see if it is in the directory - it goes straight to the storage
-     *
      */
-    request_load_file(filename, suffix, user_callback) {
-        const data = this.load_file(filename, suffix);
+    request_load_file(filename, user_callback) {
+        const data = this.load_file(filename);
         user_callback(data);
     }
     /**
@@ -181,8 +225,8 @@ class LocalStorage {
      * This will add the file to the directory as well as storing it
      *
      */
-    request_save_file(filename, suffix, data, user_callback) {
-        this.save_file(filename, suffix, data);
+    request_save_file(filename, data, user_callback) {
+        this.save_file(filename, data);
         user_callback(true);
     }
     /**
