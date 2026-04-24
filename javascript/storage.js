@@ -3,7 +3,8 @@
  * This contains Directory, LocalStorage
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LocalStorage = exports.Directory = void 0;
+exports.DBStorage = exports.LocalStorage = exports.Directory = void 0;
+const log_js_1 = require("./log.js");
 /* History
  *
  * 12 April:
@@ -199,6 +200,10 @@ class LocalStorage {
             return;
         }
         let data = this.load_file(old_filename);
+        if (data === null) {
+            user_callback(false);
+            return;
+        }
         this.save_file(new_filename, data);
         this.delete_file(old_filename);
         user_callback(true);
@@ -238,4 +243,295 @@ class LocalStorage {
     }
 }
 exports.LocalStorage = LocalStorage;
+class DBStorage {
+    /**
+     * Construct a database (a browser IndexedDB) for storing binary (and other) files
+     *
+     * Invokes the callback when the DBStorage is ready
+     *
+     * @param event
+     */
+    constructor(indexedDB, db_name, init_callback, log) {
+        this.logger = null;
+        this.db = null;
+        this.db_init_callback = init_callback;
+        this.db_name = db_name;
+        this.directory = new Directory();
+        if (log !== undefined) {
+            this.logger = new log_js_1.Logger(log, this.db_name);
+        }
+        this.db_open_request = indexedDB.open(db_name, 1);
+        this.db_open_request.onerror = (event) => {
+            this.db_open_error(event);
+        };
+        this.db_open_request.onupgradeneeded = (event) => {
+            this.db_upgrade(event);
+        };
+        this.db_open_request.onsuccess = (event) => {
+            this.db_open_success(event);
+        };
+    }
+    /**
+     * Internal method invoked when the database fails to open
+     *
+     * Invokes the db_callback with 'false'
+     *
+     * @param event
+     */
+    db_open_error(event) {
+        if (this.logger) {
+            this.logger.fatal(`Error loading Fonts database: ${event}`);
+        }
+        this.db_init_callback(false);
+    }
+    /**
+     * Internal method invoked when the database open requires an update to the database (including initialization from nothing)
+     *
+     * After this a 'success' event should occur
+     *
+     * @param event
+     */
+    db_upgrade(_event) {
+        // This occurs if the database does not exist or is at a lower version number
+        //
+        // Once this has done things the database should later open successfully
+        this.db = this.db_open_request.result;
+        if (this.logger) {
+            this.logger.info(`Upgrading storage`);
+        }
+        if (!this.db.objectStoreNames.contains("storage")) {
+            this.db.createObjectStore("storage", { keyPath: "filename" });
+        }
+    }
+    /**
+     * Internal method invoked when the database open succeeds
+     *
+     * After this occurs the 'db' property will be set up.
+     *
+     * Invokes the db_callback with 'true'
+     *
+     * @param event
+     */
+    db_open_success(_event) {
+        if (this.logger) {
+            this.logger.info(`DBStorage opened database ${this.db_name}`);
+        }
+        this.db = this.db_open_request.result;
+        this.db_init_callback(true);
+    }
+    /** Invoked when some internal database function completes
+     *
+     * @param {boolean} success Indicates the request function execute correctly
+     * @param {(cb: (data: any) => void, success: boolean, data: any) => void} callback Invoked with the user callback, success, and any data
+     * @param {(reason: any) => void} user_callback The user callback to invoke
+     * @param {any} data The data returned by the request, if any
+     */
+    db_request_complete(success, callback, user_callback, data) {
+        if (this.logger) {
+            this.logger.verbose(`DBStorage ${this.db_name} completed request with success ${success}`);
+        }
+        callback(user_callback, success, data);
+    }
+    /** Invoke a db readonly request
+     *
+     * @param request_fn
+     * @param callback
+     * @param user_callback
+     */
+    db_read_request(request_fn, callback, user_callback) {
+        const transaction = this.db.transaction("storage", "readonly");
+        const storage = transaction.objectStore("storage");
+        const request = request_fn(storage);
+        request.onsuccess = (_event) => {
+            // const db_result = result.target.result;
+            const db_result = request.result;
+            // console.log("onsuccess", request);
+            this.db_request_complete(true, callback, user_callback, db_result);
+        };
+        request.onerror = (error) => {
+            // console.log("onerror", error);
+            this.db_request_complete(false, callback, user_callback, error);
+        };
+    }
+    /** Invoke a db readwrite request
+     *
+     * @param request_fn
+     * @param callback
+     * @param user_callback
+     */
+    db_readwrite_request(request_fn, callback, user_callback) {
+        const transaction = this.db.transaction("storage", "readwrite");
+        const storage = transaction.objectStore("storage");
+        const request = request_fn(storage);
+        request.onsuccess = (_event) => {
+            const db_result = request.result;
+            this.db_request_complete(true, callback, user_callback, db_result);
+        };
+        request.onerror = (error) => {
+            this.db_request_complete(false, callback, user_callback, error);
+        };
+    }
+    /** Request the getting of the file list
+     *
+     * @param user_callback
+     */
+    request_get_file_list(user_callback) {
+        this.db_read_request((r) => {
+            return r.getAllKeys();
+        }, this.file_list_retrieved.bind(this), user_callback);
+    }
+    /** Invoked by the db request callback when that completes
+     *
+     * @param user_callback
+     * @param success
+     * @param result
+     */
+    file_list_retrieved(user_callback, success, result) {
+        if (this.logger) {
+            this.logger.verbose(`DBStorage ${this.db_name} retrieved file list with success ${success}`);
+        }
+        if (success && result !== undefined) {
+            //console.log(`Retrieved file list ${result}`);
+            this.directory.clear();
+            if (result) {
+                for (const filename of result) {
+                    this.directory.add_file(filename);
+                }
+            }
+            user_callback(true);
+        }
+        else {
+            user_callback(false);
+        }
+    }
+    /**
+     * Request to load a file from Storage, and invoke callback when it completes
+     *
+     * This does not check to see if it is in the directory - it goes straight to the storage
+     *
+     *
+     * @param {string} filename  The file to load
+     *
+     * @param {(data: any) => void} user_callback Invoked with the data (on
+     * success) or null (on failure) when the data is loaded
+     *
+     */
+    request_load_file(filename, user_callback) {
+        this.db_read_request((r) => {
+            return r.get(filename);
+        }, this.file_loaded.bind(this), user_callback);
+    }
+    file_loaded(user_callback, success, result) {
+        if (this.logger) {
+            this.logger.verbose(`DBStorage ${this.db_name} loaded file with success ${success}`);
+        }
+        if (success && result !== undefined) {
+            user_callback(result.content);
+        }
+        else {
+            user_callback(null);
+        }
+    }
+    /**
+     * Request to save a file to Storage, and invoke callback when it completes (with an indication of success or failure)
+     *
+     * This will add the file to the directory as well as storing it
+     *
+     * @param {string} filename The filename of the file
+     *
+     * @param {any} data The data to place in the file
+     *
+     * @param {(success: boolean) => void} user_callback Callback invoked when the file has been saved
+     */
+    request_save_file(filename, data, user_callback) {
+        this.db_readwrite_request((r) => {
+            return r.put({
+                filename: filename,
+                content: data,
+            });
+        }, this.file_saved.bind(this), user_callback);
+        this.directory.add_file(filename);
+    }
+    file_saved(user_callback, success, result) {
+        if (this.logger) {
+            this.logger.verbose(`DBStorage ${this.db_name} saved file with success ${success}`);
+        }
+        user_callback(success && result !== undefined);
+    }
+    /**
+     * Delete a file from Storage
+     *
+     * This will remove the file from the directory as well as deleting it
+     *
+     * The callback is invoked with success of 'true' if the directory contained the file, 'false' if it did not
+     *
+     */
+    request_delete_file(filename, user_callback) {
+        if (!this.directory.contains_file(filename)) {
+            return user_callback(false);
+        }
+        this.db_readwrite_request((r) => {
+            return r.delete(filename);
+        }, this.file_deleted.bind(this), user_callback);
+        this.directory.delete_file(filename);
+    }
+    file_deleted(user_callback, success, _result) {
+        if (this.logger) {
+            this.logger.verbose(`DBStorage ${this.db_name} deleted file with success ${success}`);
+        }
+        // _result is undefined for a 'delete' IDbRequest
+        user_callback(success);
+    }
+    /**
+     * Rename a file from Storage
+     *
+     * This will rename the file if possible
+     *
+     * The callback is invoked with success of 'true' if the the rename was okay
+     * (file existed and other filename was not a current file)
+     *
+     */
+    request_rename_file(old_filename, new_filename, user_callback) {
+        if (!this.directory.contains_file(old_filename) ||
+            this.directory.contains_file(new_filename)) {
+            if (this.logger) {
+                this.logger.error(`DBStorage ${this.db_name} could not rename file from ${old_filename} to ${new_filename}`);
+            }
+            user_callback(false);
+            return;
+        }
+        this.request_load_file(old_filename, (data) => {
+            if (data !== null) {
+                this.request_save_file(new_filename, data, (success) => {
+                    if (success) {
+                        if (this.logger) {
+                            this.logger.verbose(`DBStorage ${this.db_name} created new file for rename, issuing delete of ${old_filename}`);
+                        }
+                        this.request_delete_file(old_filename, user_callback);
+                    }
+                    else {
+                        if (this.logger) {
+                            this.logger.verbose(`DBStorage ${this.db_name} failed to rename file, as saving as new file ${new_filename} failed`);
+                        }
+                        user_callback(false);
+                    }
+                });
+            }
+            else {
+                if (this.logger) {
+                    this.logger.verbose(`DBStorage ${this.db_name} failed to rename file, as loading old file ${old_filename} failed`);
+                }
+                user_callback(false);
+            }
+        });
+    }
+    /**
+     * Return the directory contents
+     *
+     */
+    dir() {
+        return this.directory;
+    }
+}
+exports.DBStorage = DBStorage;
 //# sourceMappingURL=storage.js.map
