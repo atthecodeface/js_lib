@@ -390,6 +390,7 @@ export class DBStorage implements FileStorage {
    * @param event
    */
   constructor(
+    indexedDB: IDBFactory,
     db_name: string,
     init_callback: (success: boolean) => void,
     log?: Log,
@@ -402,7 +403,7 @@ export class DBStorage implements FileStorage {
       this.logger = new Logger(log, this.db_name);
     }
 
-    this.db_open_request = window.indexedDB.open(db_name, 1);
+    this.db_open_request = indexedDB.open(db_name, 1);
     this.db_open_request.onerror = (event: Event) => {
       this.db_open_error(event);
     };
@@ -646,15 +647,18 @@ export class DBStorage implements FileStorage {
   ): void {
     this.db_readwrite_request(
       (r) => {
+        const content = new Uint8Array(data);
+        console.log(data, content, typeof data);
         return r.put({
           filename: filename,
-          content: new Uint8Array(data),
+          content: content,
           // suffix: suffix,
         });
       },
       this.file_saved.bind(this),
       user_callback,
     );
+    this.directory.add_file(filename);
   }
 
   private file_saved(

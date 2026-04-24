@@ -193,6 +193,10 @@ export class Log {
   /** Create a new Log that will fill the given 'div' which has an 'id' of div_id
    *
    * @param {HtmlElement | string}  div an HtmlElement, or 'id' of a div in the document, to place the log into; if none is provided then logging is only to the console
+   *
+   * @param {Severity} min_severity Minimum severity for logging in the div; defaults to Info
+   *
+   * @param {Severity} console_min_severity Minimum severity for logging in the console; defaults to Warning
    */
   constructor(
     div?: HtmlElement | string,

@@ -10,10 +10,8 @@ help:
 	@echo ""
 	@echo "To use the compiler (tsc) use : npx tsc"
 	@echo ""
-	@echo "To install jest"
-	@echo "    npm install --save-dev jest ts-jest @types/jest"
-	@echo "    npm install jest-environment-jsdom --save-dev"
-	@echo "    npm i --save-dev @types/node"
+	@echo "To install jest (save-dev makes package appear in dev-dependencies)"
+	@echo "    npm install --save-dev jest ts-jest @types/jest  jest-environment-jsdom @types/node fake-indexeddb"
 
 all:
 	$(MAKE) js test
