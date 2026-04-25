@@ -24,3 +24,5 @@ test:
 
 examples:
 	npx tsc -p examples
+	mv output/examples/typescript/*js examples
+	mv output/typescript/*js examples

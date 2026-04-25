@@ -2,8 +2,9 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     "rootDir": "../",
-    "rootDirs": ["../examples", "../typescript"],
-    "outDir": "../",
+    // This enables './html.js' in blob.ts to find html.ts
+    "rootDirs": ["../examples/typescript", "../typescript"],
+    "outDir": "../output",
     // "paths": {
     //   "typescript/*": ["../typescript/*"],
     // },
@@ -34,14 +35,14 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "module": "node16",
-    "moduleResolution": "node16",
-    "types": ["node", "jest"],
+    //    "module": "node16",
+    //    "moduleResolution": "node16",
+    //    "types": ["node", "jest"],
   },
 
   "include": [],
   "files": [
-    "blob.ts",
+    "../examples/typescript/blob.ts",
     "../typescript/html.ts",
     "../typescript/log.ts",
     "../typescript/mouse.ts",

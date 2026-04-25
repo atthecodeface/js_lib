@@ -1,82 +1,92 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-const mouse_js_1 = require("./mouse.js");
-const log = __importStar(require("./log.js"));
-const html = __importStar(require("./html.js"));
+import * as mouse from "./mouse.js";
+import * as log from "./log.js";
+import * as html from "./html.js";
 class Main {
     constructor() {
-        this.log = new log.Log();
+        this.blob_xy = [100, 100];
+        this.blob_rot = 0;
+        this.blob_size = 40;
+        this.blob_pressed = false;
+        this.log = new log.Log("", log.Severity.Fatal, log.Severity.Verbose);
         this.log_src = new log.Logger(this.log, "main");
         this.div = new html.HtmlElement(document.getElementById("DrawCanvas"));
-        this.canvas = this.div.add_ele("canvas");
-        const canvas = this.canvas.ele;
-        canvas.width = 600;
-        canvas.height = 400;
-        const ctxt = canvas.getContext("2d");
+        this.canvas = this.div.add_ele("canvas").ele;
+        this.canvas.width = 320;
+        this.canvas.height = 400;
+        this.mouse = new mouse.Mouse(this, this.canvas);
+        this.redraw();
+    }
+    redraw() {
+        const ctxt = this.canvas.getContext("2d");
         ctxt.fillStyle = "#FFA";
-        ctxt.fillRect(0, 0, canvas.width, canvas.height);
-        this.mouse = new mouse_js_1.Mouse(this, canvas);
+        ctxt.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        ctxt.save();
+        ctxt.fillStyle = "#E44";
+        if (this.blob_pressed) {
+            ctxt.fillStyle = "#4EE";
+        }
+        ctxt.translate(this.canvas.width / 2 + this.blob_xy[0], this.canvas.height / 2 + this.blob_xy[1]);
+        ctxt.rotate(this.blob_rot);
+        ctxt.fillRect(-this.blob_size / 2, -this.blob_size / 2, this.blob_size, this.blob_size);
+        ctxt.restore();
+    }
+    xy_is_on_blob(xy) {
+        let dx = xy[0] - (this.canvas.width / 2 + this.blob_xy[0]);
+        let dy = xy[1] - (this.canvas.height / 2 + this.blob_xy[1]);
+        let dx_r = dx * Math.cos(this.blob_rot) - dy * Math.sin(this.blob_rot);
+        let dy_r = dy * Math.cos(this.blob_rot) + dx * Math.sin(this.blob_rot);
+        return (Math.abs(dx_r) < this.blob_size / 2 && Math.abs(dy_r) < this.blob_size / 2);
     }
     user_zoom(xy, factor) {
         this.log_src.info(`Zoom ${xy} ${factor}`);
+        this.blob_size *= factor;
+        this.redraw();
     }
     user_rotate(xy, angle) {
         this.log_src.info(`Rotate ${xy} ${angle}`);
+        this.blob_rot += angle;
+        this.redraw();
     }
     user_pan(xy, dxy) {
         this.log_src.info(`Pan ${xy} ${dxy}`);
+        this.blob_xy[0] += dxy[0];
+        this.blob_xy[1] += dxy[1];
+        this.redraw();
     }
-    user_press(xy) {
+    user_press(xy, actions) {
         this.log_src.info(`Press ${xy}`);
-        return 0;
+        if (this.xy_is_on_blob(xy)) {
+            this.blob_pressed = true;
+            actions.can_drag = false;
+        }
+        this.redraw();
     }
     user_press_move(start_xy, xy) {
         this.log_src.info(`Press move ${start_xy} ${xy}`);
+        this.blob_pressed = this.xy_is_on_blob(xy);
+        this.redraw();
     }
     user_press_cancel(start_xy) {
         this.log_src.info(`Press cancel ${start_xy}`);
+        this.blob_pressed = false;
+        this.redraw();
     }
     user_release(start_xy, xy) {
         this.log_src.info(`Press release ${start_xy} ${xy}`);
+        if (this.blob_pressed) {
+            window.alert("Blob clicked!");
+        }
+        this.blob_pressed = false;
+        this.redraw();
     }
     drag_start(start_xy, xy) {
         this.log_src.info(`Drag start ${start_xy} ${xy}`);
     }
     drag_to(start_xy, old_xy, new_xy) {
         this.log_src.info(`Drag ${start_xy} ${old_xy} ${new_xy}`);
+        this.blob_xy[0] += new_xy[0] - old_xy[0];
+        this.blob_xy[1] += new_xy[1] - old_xy[1];
+        this.redraw();
     }
     // Drag (which started at start_xy) has finished at xy (which the last drag_to probably indicated)
     drag_end(start_xy, xy) {
