@@ -2,10 +2,11 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     "rootDir": "../",
+    "rootDirs": ["../examples", "../typescript"],
     "outDir": "../",
-    "paths": {
-      "typescript/*": ["../typescript/*"],
-    },
+    // "paths": {
+    //   "typescript/*": ["../typescript/*"],
+    // },
 
     "target": "ES2015",
     // "sourceMap": true,
@@ -38,10 +39,11 @@
     "types": ["node", "jest"],
   },
 
-  // "include": [
-  //    "../typescript/html.ts",
-  //    "../typescript/log.ts",
-  //    "../typescript/mouse.ts",
-  //  ],
-  "files": ["../examples/blob.ts"],
+  "include": [],
+  "files": [
+    "blob.ts",
+    "../typescript/html.ts",
+    "../typescript/log.ts",
+    "../typescript/mouse.ts",
+  ],
 }

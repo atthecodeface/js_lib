@@ -33,9 +33,9 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-const mouse_js_1 = require("../typescript/mouse.js");
-const log = __importStar(require("../typescript/log.js"));
-const html = __importStar(require("../typescript/html.js"));
+const mouse_js_1 = require("./mouse.js");
+const log = __importStar(require("./log.js"));
+const html = __importStar(require("./html.js"));
 class Main {
     constructor() {
         this.log = new log.Log();

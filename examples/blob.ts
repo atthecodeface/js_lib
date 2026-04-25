@@ -1,6 +1,6 @@
-import { Mouse } from "../typescript/mouse.js";
-import * as log from "../typescript/log.js";
-import * as html from "../typescript/html.js";
+import { Mouse } from "./mouse.js";
+import * as log from "./log.js";
+import * as html from "./html.js";
 
 class Main {
   div: html.HtmlElement;
