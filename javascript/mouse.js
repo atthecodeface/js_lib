@@ -1,6 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Mouse = void 0;
+exports.Mouse = exports.MousePressActions = void 0;
+class MousePressActions {
+    constructor() {
+        this.can_drag = true;
+        this.can_move = true;
+        this.can_zoom = true;
+        this.can_rotate = true;
+        this.can_scale = true;
+        this.ignore_second_touch = false;
+        this.drag_sensitivity = 5;
+    }
+}
+exports.MousePressActions = MousePressActions;
 var InteractionState;
 (function (InteractionState) {
     // Mouse down has occurred; user_press has been issued
@@ -32,7 +44,7 @@ class ClientInteraction {
         /** The second touch last relative location (if TouchedTwice, else invalid)
          */
         this.second_touch_xy = [0, 0];
-        this.drag_sensitivity = 5;
+        this.press_actions = new MousePressActions();
         this.client = client;
         const bbox = ele.getBoundingClientRect();
         const ele_tl_xy = [bbox.left, bbox.top];
@@ -46,7 +58,7 @@ class ClientInteraction {
             this.first_touch_index = event.identifier;
             this.first_touch_xy = this.initial_xy;
         }
-        this.client.user_press(this.initial_xy);
+        this.client.user_press(this.initial_xy, this.press_actions);
     }
     /**
      * Mouse has been pressed; start ClientInteraction
@@ -92,8 +104,12 @@ class ClientInteraction {
      * @returns {boolean} True if cxy is sufficiently distant from sxy to invoke dragging
      */
     has_dragged(xy) {
-        return !(Math.abs(xy[0] - this.initial_xy[0]) < this.drag_sensitivity &&
-            Math.abs(xy[1] - this.initial_xy[1]) < this.drag_sensitivity);
+        if (!this.press_actions.can_drag) {
+            return false;
+        }
+        return !(Math.abs(xy[0] - this.initial_xy[0]) <
+            this.press_actions.drag_sensitivity &&
+            Math.abs(xy[1] - this.initial_xy[1]) < this.press_actions.drag_sensitivity);
     }
     /**
      * Find which touch index in a TouchEvent is our touch_first
@@ -176,6 +192,9 @@ class ClientInteraction {
      */
     touch_start(e) {
         e.preventDefault();
+        if (this.press_actions.ignore_second_touch) {
+            return true;
+        }
         switch (this.state) {
             case InteractionState.TouchedOncePressed: {
                 if (e.touches.length != 2) {
@@ -230,19 +249,29 @@ class ClientInteraction {
                 const dy_new = tf_new_cxy[1] - ts_new_cxy[1];
                 const d_orig = Math.sqrt(dx_orig * dx_orig + dy_orig * dy_orig);
                 const d_new = Math.sqrt(dx_new * dx_new + dy_new * dy_new);
-                const dcxy = [
+                const old_cxy = [
+                    (this.first_touch_xy[0] + this.second_touch_xy[0]) / 2,
+                    (this.first_touch_xy[1] + this.second_touch_xy[1]) / 2,
+                ];
+                const new_cxy = [
                     (tf_new_cxy[0] + ts_new_cxy[0]) / 2,
                     (tf_new_cxy[1] + ts_new_cxy[1]) / 2,
                 ];
+                if (old_cxy[0] != new_cxy[0] || old_cxy[0] != new_cxy[0]) {
+                    this.client.user_pan(new_cxy, [
+                        new_cxy[0] - old_cxy[0],
+                        new_cxy[1] - old_cxy[1],
+                    ]);
+                }
                 if (d_orig != d_new) {
                     if (d_new > 0 && d_orig > 0) {
-                        this.client.user_zoom(dcxy, d_orig / d_new);
+                        this.client.user_zoom(new_cxy, d_orig / d_new);
                     }
                 }
                 const a_orig = Math.atan2(dy_orig, dx_orig);
                 const a_new = Math.atan2(dy_new, dx_new);
                 if (a_orig != a_new) {
-                    this.client.user_rotate(dcxy, a_new - a_orig);
+                    this.client.user_rotate(new_cxy, a_new - a_orig);
                 }
                 this.first_touch_xy = tf_new_cxy;
                 this.second_touch_xy = ts_new_cxy;
@@ -264,11 +293,17 @@ class ClientInteraction {
                     return this.abort(null);
                 }
                 const tf_new_cxy = this.relative_xy(t01[0]);
+                this.first_touch_xy = tf_new_cxy;
                 if (this.has_dragged(tf_new_cxy)) {
                     this.client.user_press_cancel(this.initial_xy);
                     this.client.drag_start(this.initial_xy, tf_new_cxy);
                     this.drag_xy = tf_new_cxy;
                     this.state = InteractionState.TouchedOnceDragging;
+                }
+                else {
+                    if (this.press_actions.can_move) {
+                        this.client.user_press_move(this.initial_xy, tf_new_cxy);
+                    }
                 }
                 return true;
             }
@@ -292,8 +327,12 @@ class ClientInteraction {
                 return false;
             }
             case InteractionState.TouchedOncePressed: {
-                this.client.user_release(this.initial_xy, this.first_touch_xy);
-                return false;
+                const t01 = this.event_touches(e, false);
+                if (t01 == null) {
+                    this.client.user_release(this.initial_xy, this.first_touch_xy);
+                    return false;
+                }
+                return true;
             }
             default: {
                 return this.abort(this.first_touch_xy);
@@ -364,7 +403,9 @@ class ClientInteraction {
                     this.state = InteractionState.MouseDragging;
                 }
                 else {
-                    this.client.user_press_move(this.initial_xy, cxy);
+                    if (this.press_actions.can_move) {
+                        this.client.user_press_move(this.initial_xy, cxy);
+                    }
                 }
                 return true;
             }
