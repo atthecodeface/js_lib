@@ -1,13 +1,16 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    "rootDir": "./typescript/",
-    "outDir": "./javascript/",
+    "rootDir": "../",
+    "outDir": "../",
+    "paths": {
+      "typescript/*": ["../typescript/*"],
+    },
 
     "target": "ES2015",
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
+    // "sourceMap": true,
+    // "declaration": true,
+    // "declarationMap": true,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
@@ -35,14 +38,10 @@
     "types": ["node", "jest"],
   },
 
-  // "include": ["pkg/*"],
-
-  "files": [
-    "typescript/html.ts",
-    "typescript/log.ts",
-    "typescript/animate.ts",
-    "typescript/mouse.ts",
-    "typescript/tabbed.ts",
-    "typescript/storage.ts",
-  ],
+  // "include": [
+  //    "../typescript/html.ts",
+  //    "../typescript/log.ts",
+  //    "../typescript/mouse.ts",
+  //  ],
+  "files": ["../examples/blob.ts"],
 }

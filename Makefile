@@ -1,4 +1,4 @@
-.PHONY: js start_http serve help zip dprs.zip transfer
+.PHONY: all test js help examples
 
 help:
 	@echo "To compile the typescript to the 'js' directory (where it is checked into git):"
@@ -21,3 +21,6 @@ js:
 
 test:
 	(cd typescript; npm test)
+
+examples:
+	npx tsc -p examples
