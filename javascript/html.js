@@ -167,9 +167,12 @@ class HtmlElement {
             }
         }
     }
-    static new_ele(ele_type, id_classes = {}) {
+    static new_ele(ele_type, id_classes = {}, map = null) {
         const ele = document.createElement(ele_type);
         HtmlElement.set_id_classes(ele, id_classes);
+        if (map !== null) {
+            map(ele);
+        }
         return new HtmlElement(ele);
     }
     constructor(ele) {
