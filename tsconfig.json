@@ -44,5 +44,6 @@
     "typescript/mouse.ts",
     "typescript/tabbed.ts",
     "typescript/storage.ts",
+    "typescript/web_gl.ts",
   ],
 }
