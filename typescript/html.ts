@@ -204,14 +204,25 @@ export class HtmlElement {
     return new HtmlElement(ele);
   }
 
+  static all_of(selector: string): HtmlElement[] {
+    const result = [];
+    for (const e of document.querySelectorAll(selector)) {
+      if (e instanceof HTMLElement) {
+        result.push(new HtmlElement(e));
+      }
+    }
+    return result;
+  }
+
   constructor(ele: HTMLElement) {
     this.ele = ele;
   }
 
-  clear() {
+  clear(): HtmlElement {
     while (this.ele.firstChild) {
       this.ele.removeChild(this.ele.firstChild);
     }
+    return this;
   }
 
   add_ele(ele_type: string, id_classes: IdClasses = {}) {
@@ -221,7 +232,7 @@ export class HtmlElement {
     return new HtmlElement(ele);
   }
 
-  add_tags(tag_values: Array<[string, string]>) {
+  add_tags(tag_values: Array<[string, string]>): HtmlElement {
     for (const [tag, value] of tag_values) {
       this.ele.setAttribute(tag, value);
     }
@@ -324,6 +335,14 @@ export class HtmlElement {
     HtmlElement.set_id_classes(label, id_classes);
     this.ele.appendChild(label);
     return new HtmlElement(label);
+  }
+
+  input_checked(): boolean {
+    if (this.ele instanceof HTMLInputElement) {
+      return this.ele.checked;
+    } else {
+      return false;
+    }
   }
 
   set_content(content: Node | HtmlElement | string): HtmlElement {

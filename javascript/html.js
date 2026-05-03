@@ -175,6 +175,15 @@ class HtmlElement {
         }
         return new HtmlElement(ele);
     }
+    static all_of(selector) {
+        const result = [];
+        for (const e of document.querySelectorAll(selector)) {
+            if (e instanceof HTMLElement) {
+                result.push(new HtmlElement(e));
+            }
+        }
+        return result;
+    }
     constructor(ele) {
         this.ele = ele;
     }
@@ -182,6 +191,7 @@ class HtmlElement {
         while (this.ele.firstChild) {
             this.ele.removeChild(this.ele.firstChild);
         }
+        return this;
     }
     add_ele(ele_type, id_classes = {}) {
         const ele = document.createElement(ele_type);
@@ -273,6 +283,14 @@ class HtmlElement {
         HtmlElement.set_id_classes(label, id_classes);
         this.ele.appendChild(label);
         return new HtmlElement(label);
+    }
+    input_checked() {
+        if (this.ele instanceof HTMLInputElement) {
+            return this.ele.checked;
+        }
+        else {
+            return false;
+        }
     }
     set_content(content) {
         //console.log(this.ele);
