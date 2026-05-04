@@ -266,6 +266,7 @@ export class HtmlElement {
     name: string,
     value: string,
     required: boolean,
+    callback: null | ((event: Event) => void) = null,
     id_classes: IdClasses = {},
   ) {
     const input = document.createElement("input");
@@ -276,6 +277,9 @@ export class HtmlElement {
       input.setAttribute("required", "true");
     }
     HtmlElement.set_id_classes(input, id_classes);
+    if (callback !== null) {
+      input.addEventListener("change", callback);
+    }
     this.ele.appendChild(input);
     return new HtmlElement(input);
   }
@@ -283,7 +287,7 @@ export class HtmlElement {
   add_input_range(
     name: string,
     range: Range,
-    callback: (event: Event, value: number) => void,
+    callback: null | ((event: Event, value: number) => void) = null,
     id_classes: IdClasses = {},
   ) {
     var value = range.min;
@@ -301,20 +305,46 @@ export class HtmlElement {
     input.setAttribute("min", range.min.toString());
     input.setAttribute("max", range.max.toString());
     input.setAttribute("step", step.toString());
-    // const x: HTMLInputElement = new HTMLInputElement();
-    // x.on
-    input.oninput = (e) => {
-      var value;
-      if (step == 1) {
-        value = Number.parseFloat(input.value);
-      } else {
-        value = Number.parseFloat(input.value);
-      }
-      callback(e, value);
-    };
+    if (callback !== null) {
+      input.oninput = (e) => {
+        var value;
+        if (step == 1) {
+          value = Number.parseFloat(input.value);
+        } else {
+          value = Number.parseFloat(input.value);
+        }
+        callback(e, value);
+      };
+    }
     HtmlElement.set_id_classes(input, id_classes);
     this.ele.appendChild(input);
     return new HtmlElement(input);
+  }
+
+  add_input_dropdown(
+    values_labels: [string, string][],
+    default_value: string | null = null,
+    callback: null | ((event: Event, value: string) => void) = null,
+    id_classes: IdClasses = {},
+  ) {
+    const select = document.createElement("select");
+    for (const [value, label] of values_labels) {
+      const option = document.createElement("option") as HTMLOptionElement;
+      option.text = label;
+      option.value = value;
+      select.appendChild(option);
+    }
+    if (callback !== null) {
+      select.addEventListener("change", (e) => {
+        callback(e, select.value);
+      });
+    }
+    this.ele.appendChild(select);
+    HtmlElement.set_id_classes(select, id_classes);
+    if (default_value !== null) {
+      select.value = default_value;
+    }
+    return new HtmlElement(select);
   }
 
   add_input_text(name: string, value: string, id_classes: IdClasses = {}) {
