@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Inputs test</title>
+    </head>
+    <body>
+        <link href="inputs.css" rel="stylesheet" type="text/css" />
+        <script type="module" src="./inputs.js"></script>
+        <div class="help">
+            <h2>Operation</h2>
+            The alert button should generate an alert when pressed, as a
+            'button' input.
+            <br />
+            The text input produces an event on every change to the input text.
+            <br />
+            The first pair of radio buttons must have at least one set; a log
+            message is produced on the callback when any one is selected
+            <br />
+            The second pair of radio buttons need not have any set; a log
+            message is produced on the callback when any one is selected
+            <br />
+            The two checkboxes are independent; each produces a (different) log
+            message indicating whether they are selected on each click
+            <br />
+            The first dropdown is a *single* with a requirement for at least one
+            being selected; a callback is invoked when any is chosen.
+            <br />
+            The second dropdown is a *multiple* entry with no requirement for
+            any to be set; a callback is invoked (with the *latest* value
+            selected) when any is chosen - all of the selected values are
+            available in event.target.selectedOptions.
+            <br />
+            The first input range is a *float* with value 100 to 110
+            <br />
+            The second input range is an *integer* with value -50 to 50
+            <br />
+            The third input range has a step of 10 with value -500 to 0
+        </div>
+        <div class="test" id="TestArea"></div>
+    </body>
+</html>

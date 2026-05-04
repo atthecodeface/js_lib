@@ -43,6 +43,7 @@
   "include": [],
   "files": [
     "../examples/typescript/blob.ts",
+    "../examples/typescript/inputs.ts",
     "../typescript/html.ts",
     "../typescript/log.ts",
     "../typescript/mouse.ts",

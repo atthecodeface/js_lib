@@ -5,9 +5,32 @@
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <title>Blob</title>
     </head>
-    <body class="dn">
+    <body>
         <link href="blob.css" rel="stylesheet" type="text/css" />
         <script type="module" src="./blob.js"></script>
-        <div id="DrawCanvas"></div>
+        <div class="help">
+            <h2>Mouse Press/move/cancel/release</h2>
+            If you mouse press on the blob it should go from red to cyan
+            <br />
+            If you move outside the blob it should go back to red; if you move
+            back in again it should go back to cyan.
+            <br />
+            Releasing the mouse when the blob is cyan should pop up an alert.
+            This is mouse 'click'
+            <h2>Mouse drag</h2>
+            A press outside of the blob should start a drag; the blob can be
+            dragged anywhere, then released
+            <h2>Console log</h2>
+            All press/drag events are logged to the console
+            <h2>Expected sequences</h2>
+            Everything starts with a Press; no mouse movement leads to an
+            immediate Release.
+            <br />
+            Press and move inside the blob yields Press Move* Release
+            <br />
+            Press and move outside the blob yields Press, Press cancel, Drag
+            start, Drag*, Drag End
+        </div>
+        <div class="test" id="DrawCanvas"></div>
     </body>
 </html>

@@ -1,9 +1,14 @@
 .help {
     width: 50%;
 }
-.test {
+#TestArea {
     width: 50%;
     position: absolute;
     top: 0px;
     left: 50%;
+    display: flexbox;
+}
+.test.item {
+    display: flex;
+    flex: none;
 }
