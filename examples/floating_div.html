@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Floating div</title>
+    </head>
+    <body>
+        <link href="floating_div.css" rel="stylesheet" type="text/css" />
+
+        <div class="floating-div">
+            <div class="flex box">
+                <div class="flex content get_size_of_this">
+                    <div class="floating-resizable">
+                        The floating content goes here:
+                        <button
+                            onclick="
+                                const resizable_box =
+                                    document.getElementsByClassName(
+                                        'get_size_of_this',
+                                    )[0];
+                                const svg =
+                                    document.getElementsByClassName(
+                                        'set_size_of_this',
+                                    )[0];
+                                console.log(
+                                    resizable_box.offsetWidth,
+                                    resizable_box.offsetHeight,
+                                );
+                                const size = Math.min(
+                                    resizable_box.offsetWidth,
+                                    resizable_box.offsetHeight,
+                                );
+                                svg.style.width = `${size}px`;
+                                svg.style.height = `${size}px`;
+                                console.log(svg);
+                            "
+                        >
+                            Resize SVG
+                        </button>
+                    </div>
+                    <div>
+                        <svg
+                            class="set_size_of_this"
+                            width="80px"
+                            height="80px"
+                            version="1.1"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewbox="0 0 50 50"
+                        >
+                            <circle
+                                cx="25"
+                                cy="25"
+                                r="20"
+                                stroke="red"
+                                fill="transparent"
+                                stroke-width="5"
+                            />
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex footer"></div>
+            </div>
+        </div>
+
+        <div class="fixed-div">
+            <h1>Fixed content</h1>
+            This page has fixed content (this) that sits on top of a floating
+            content
+        </div>
+    </body>
+</html>

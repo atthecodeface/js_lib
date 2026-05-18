@@ -1,0 +1,46 @@
+html {
+    margin: 0px;
+    body {
+        margin: 0px;
+    }
+}
+
+.floating-div {
+    z-index: -1;
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+
+    .flex.box {
+        display: flex;
+        flex-flow: column;
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+
+        .flex.content {
+            flex: 1 1 auto;
+        }
+
+        .flex.fixed {
+            flex: 0 1 min-content;
+        }
+
+        .flex.footer {
+            flex: 0 1 0px;
+        }
+    }
+}
+
+.fixed-div {
+    z-index: 0;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    /* Enable 'button' to be activated from z-index of -1 */
+    pointer-events: none;
+}
