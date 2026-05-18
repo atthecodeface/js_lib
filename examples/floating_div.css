@@ -5,6 +5,37 @@ html {
     }
 }
 
+.tab-list {
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        border-top: 2px;
+        border-top-style: solid;
+        border-bottom-width: 3px;
+        border-bottom-style: solid;
+        li {
+            float: left;
+            a {
+                display: block;
+                text-align: center;
+                padding: 6px 12px;
+                text-decoration: none;
+            }
+            label {
+                display: block;
+                text-align: bottom;
+                padding: 6px 12px;
+                text-decoration: none;
+            }
+        }
+        li.active a {
+            pointer-events: none;
+        }
+    }
+}
+
 .floating-div {
     z-index: -1;
     position: fixed;
@@ -40,7 +71,9 @@ html {
     z-index: 0;
     position: absolute;
     top: 0px;
-    bottom: 0px;
-    /* Enable 'button' to be activated from z-index of -1 */
-    pointer-events: none;
+    left: 0px;
+    .fixed-content {
+        /* Enable 'button' to be activated from z-index of -1 */
+        pointer-events: none;
+    }
 }

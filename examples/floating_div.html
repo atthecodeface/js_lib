@@ -7,40 +7,18 @@
     </head>
     <body>
         <link href="floating_div.css" rel="stylesheet" type="text/css" />
+        <script type="module" src="./floating_div.js"></script>
 
         <div class="floating-div">
             <div class="flex box">
                 <div class="flex content get_size_of_this">
                     <div class="floating-resizable">
-                        The floating content goes here:
-                        <button
-                            onclick="
-                                const resizable_box =
-                                    document.getElementsByClassName(
-                                        'get_size_of_this',
-                                    )[0];
-                                const svg =
-                                    document.getElementsByClassName(
-                                        'set_size_of_this',
-                                    )[0];
-                                console.log(
-                                    resizable_box.offsetWidth,
-                                    resizable_box.offsetHeight,
-                                );
-                                const size = Math.min(
-                                    resizable_box.offsetWidth,
-                                    resizable_box.offsetHeight,
-                                );
-                                svg.style.width = `${size}px`;
-                                svg.style.height = `${size}px`;
-                                console.log(svg);
-                            "
-                        >
-                            Resize SVG
-                        </button>
-                    </div>
-                    <div>
+                        This is the top of the resizable canvas
+                        <p></p>
+
+                        <div id="floating-text">This is floating text</div>
                         <svg
+                            id="floating-svg"
                             class="set_size_of_this"
                             width="80px"
                             height="80px"
@@ -57,6 +35,8 @@
                                 stroke-width="5"
                             />
                         </svg>
+                        <p></p>
+                        This is the bottom of the resizable canvas
                     </div>
                 </div>
                 <div class="flex footer"></div>
@@ -64,9 +44,28 @@
         </div>
 
         <div class="fixed-div">
-            <h1>Fixed content</h1>
-            This page has fixed content (this) that sits on top of a floating
-            content
+            <div id="tab-list" class="tab-list">
+                <ul>
+                    <li><a href="#tab-fixed-one">Fixed one</a></li>
+                    <li><a href="#tab-fixed-two">Fixed two</a></li>
+                    <li><a href="#tab-floating-svg">SVG</a></li>
+                    <li><a href="#tab-floating-text">Text</a></li>
+                </ul>
+            </div>
+            <div class="fixed-content">
+                <div id="tab-fixed-one">
+                    <h1>Fixed content one</h1>
+                    This page has fixed content (this) that sits on top of a
+                    floating content
+                </div>
+                <div id="tab-fixed-two">
+                    <h1>Fixed content two</h1>
+                    This page has fixed content (this) that sits on top of a
+                    floating content
+                </div>
+                <div id="tab-floating-svg"></div>
+                <div id="tab-floating-text"></div>
+            </div>
         </div>
     </body>
 </html>

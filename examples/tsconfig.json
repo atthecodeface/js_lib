@@ -44,8 +44,10 @@
   "files": [
     "../examples/typescript/blob.ts",
     "../examples/typescript/inputs.ts",
+    "../examples/typescript/floating_div.ts",
     "../typescript/html.ts",
     "../typescript/log.ts",
     "../typescript/mouse.ts",
+    "../typescript/tabbed.ts",
   ],
 }
