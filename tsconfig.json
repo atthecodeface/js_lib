@@ -48,6 +48,8 @@
     "typescript/web_gl_bezier.ts",
     "typescript/web_gl_flat.ts",
     "typescript/web_gl_3d_obj.ts",
+    "typescript/wasm_memory.ts",
+
     "typescript/wasm_pkg.ts",
   ],
 }

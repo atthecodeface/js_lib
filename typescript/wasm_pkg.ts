@@ -7,4 +7,12 @@ export class WasmVec3f32 {
   constructor(x: number, y: number, z: number) {}
   static zero(): WasmVec3f32 {}
   array: ArrayLike<number>;
+  buffer: number;
+}
+
+export class WasmVec3f64 {
+  constructor(x: number, y: number, z: number) {}
+  static zero(): WasmVec3f32 {}
+  array: ArrayLike<number>;
+  buffer: number;
 }

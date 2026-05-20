@@ -58,7 +58,7 @@ class WebglCubicBezierObj {
         }
         this.control_points = new Float32Array(4 * 4);
         this.control_points_offset = 0;
-        this.point = wasm_pkg_js_1.WasmVec3f32.default();
+        this.point = wasm_pkg_js_1.WasmVec3f32.zero();
     }
     static of_bezier(bezier, steps = 10) {
         const b = new WebglCubicBezierObj(steps);
