@@ -24,12 +24,13 @@ export class Main {
             this.resize_observer.observe(resizable_content);
         }
     }
-    resize_event(_e) {
+    resize_event(e) {
+        console.log("Resize event", e);
         const resizable_box = document.getElementsByClassName("get_size_of_this")[0];
         const svg = document.getElementsByClassName("set_size_of_this")[0];
         const width = resizable_box.offsetWidth;
         const height = resizable_box.offsetWidth;
-        const size = Math.max(Math.min(width, height) - 100, 20);
+        const size = Math.max(Math.min(width, height) + 100, 20);
         svg.style.width = `${size}px`;
         svg.style.height = `${size}px`;
     }

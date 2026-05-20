@@ -15,6 +15,17 @@
                     <div class="floating-resizable">
                         This is the top of the resizable canvas
                         <p></p>
+                        The outer floating div is the size of the window. The
+                        flex box inside it should be the same size, as it is
+                        forced to be placed absolute with 0px for
+                        left/top/bottom/right. The content inside is flexible
+                        and *will* be fitted (with other content) to fill the
+                        flex; it can grow/shrink, so it too will b the same size
+                        as the box (minus any fixed size flex entries there
+                        might also be, if any). The floating-resizable div
+                        inside this is a container for items to be placed
+                        absolute at top/left of 0px, with *no* other bounds
+                        <p></p>
 
                         <div id="floating-text">This is floating text</div>
                         <svg

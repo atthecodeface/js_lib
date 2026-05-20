@@ -35,7 +35,8 @@ export class Main {
     }
   }
 
-  resize_event(_e: ResizeObserverEntry[]): void {
+  resize_event(e: ResizeObserverEntry[]): void {
+    console.log("Resize event", e);
     const resizable_box = document.getElementsByClassName(
       "get_size_of_this",
     )![0]! as HTMLDivElement;
@@ -44,7 +45,7 @@ export class Main {
     )![0]! as HTMLDivElement;
     const width = resizable_box.offsetWidth;
     const height = resizable_box.offsetWidth;
-    const size = Math.max(Math.min(width, height) - 100, 20);
+    const size = Math.max(Math.min(width, height) + 100, 20);
     svg.style.width = `${size}px`;
     svg.style.height = `${size}px`;
   }
