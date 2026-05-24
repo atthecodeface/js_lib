@@ -65,6 +65,7 @@ export class WebglPtFieldShader implements WebglShaderSrc {
     // Decode kind of mapping
     bool is_sphere = (uint(data.z) & 0x1u) != 0u;
     bool project_cube = (uint(data.z) & 0x2u) != 0u;
+    bool square_law = (uint(data.z) & 0x4u) != 0u;
     uint u_sz_min = ((uint(data.z)>>16) & 0x3u); // 0 to 3
     uint u_sz_range = ((uint(data.z)>>18) & 0x3u); // 0 to 3
     uint u_sz_random_weight = (uint(data.z)>>20) & 0xfu;
@@ -104,33 +105,38 @@ export class WebglPtFieldShader implements WebglShaderSrc {
     uint u_sz = u_r16_id_h & 0xffu;
 
     // Convert unsigned random to float random
-    float f_r_x = float(u_r_x) * f_r_nx;
-    float f_r_y = float(u_r_y) * f_r_ny;
-    float f_r_z = float(u_r_z) * f_r_nz;
+    vec3 f_r = vec3(
+      float(u_r_x) * f_r_nx,
+      float(u_r_y) * f_r_ny,
+      float(u_r_z) * f_r_nz
+    );
+
     float f_sz = (float(u_sz) / 255.0) * (float(u_sz_range)) + float(u_sz_min+1u);
 
-    float f_id_x = float(uint(gl_InstanceID) % nx) * f_r_nx;
-    float f_id_y = float((uint(gl_InstanceID) / nx) % ny)* f_r_ny;
-    float f_id_z = float((uint(gl_InstanceID) / (nx*ny)) % nz) * f_r_nz;
+    vec3 f_id = vec3(
+      float(uint(gl_InstanceID) % nx) * f_r_nx,
+      float((uint(gl_InstanceID) / nx) % ny)* f_r_ny,
+      float((uint(gl_InstanceID) / (nx*ny)) % nz) * f_r_nz
+      );
 
-    float f_x = fract(mix(f_id_x, f_r_x, f_pt_random_weight));
-    float f_y = fract(mix(f_id_y, f_r_y, f_pt_random_weight));
-    float f_z = fract(mix(f_id_z, f_r_z, f_pt_random_weight));
+    vec3 f = fract(mix(f_id, f_r, f_pt_random_weight)) - vec3(0.5,0.5,0.5);
 
-    vec3 position = vec3(f_x - 0.5, f_y-0.5, f_z-0.5);
+    vec3 position = f;
     float scale = 1.0;
     if (is_sphere) {
-      float f_theta = f_x * 6.283185307179586;
-      float f_phi = (f_y - 0.5) * 3.141592653589793;
-      float f_sin_phi = 2.0 * sqrt( f_y * (1.0-f_y));
-      float f_cos_phi = (2.0 * f_y) - 1.0;
+      float f_theta = f.x * 6.283185307179586;
       float f_sin_theta = sin(f_theta);
       float f_cos_theta = cos(f_theta);
-      scale = (1.0 - f_z) / 2.0;
+      // Was 2*sqrt(y-y^2) for y=0 .. 1; i.e. 0, sqrt(3)/2, 1, sqrt(3)/2, 0 for y = n / 4
+      // For y=-0.5 to +0.5 plug in y = new_y + 0.5; y-y^2 = 0.25 - new_y^2
+      float f_sin_phi = 2.0 * sqrt( 0.25 - f.y*f.y);
+      float f_cos_phi = 2.0 * f.y;
+      scale = (0.5 - f.z) / 2.0;
       position = vec3(f_sin_theta * f_sin_phi, f_cos_theta*f_sin_phi, f_cos_phi);
     }
     vec3 position_abs = abs(position);
     scale = project_cube ? (1.0 /  max(max(position_abs.x, position_abs.y), position_abs.z)) : scale;
+    scale = square_law ? sqrt(scale) : scale;
     position = position * scale;
     gl_Position = projection * view * model * vec4(position + origin_seed.xyz, 1.0);
     gl_PointSize = f_sz;
