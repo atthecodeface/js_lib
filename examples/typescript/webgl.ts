@@ -121,6 +121,46 @@ export class Main implements mouse.MouseClient {
       this.texture.image!.src = this.image_filename;
     }
 
+    const pt_field_ctls = new html.HtmlElement(
+      document.getElementById("pt_field_ctls")!,
+    );
+    pt_field_ctls.add_input_range(
+      "pt_field_num_pts",
+      { min: 1, max: 10000 },
+      this.pt_field_set_num_pts.bind(this),
+      {},
+    );
+    pt_field_ctls.add_input_range(
+      "pt_field_nx",
+      { min: 1, max: 100 },
+      this.pt_field_set_nx.bind(this),
+      {},
+    );
+    pt_field_ctls.add_input_range(
+      "pt_field_ny",
+      { min: 1, max: 100 },
+      this.pt_field_set_ny.bind(this),
+      {},
+    );
+    pt_field_ctls.add_input_range(
+      "pt_field_nz",
+      { min: 1, max: 100 },
+      this.pt_field_set_nz.bind(this),
+      {},
+    );
+    pt_field_ctls.add_input_range(
+      "pt_field_style",
+      { min: 0, max: 15 },
+      this.pt_field_set_style.bind(this),
+      {},
+    );
+    pt_field_ctls.add_input_range(
+      "pt_random_weight",
+      { min: 0, max: 1.0, step: 0.01 },
+      this.pt_field_set_random_weight.bind(this),
+      {},
+    );
+
     for (const resizable_content of document.getElementsByClassName(
       "get_size_of_this",
     )) {
@@ -128,6 +168,36 @@ export class Main implements mouse.MouseClient {
     }
 
     this.tabs.select("tab-cube");
+  }
+
+  pt_field_set_num_pts(_event: Event, value: number): void {
+    this.pt_field.set_num_points(value);
+    this.redraw();
+  }
+
+  pt_field_set_nx(_event: Event, value: number): void {
+    this.pt_field.set_dims(value, this.pt_field.ny, this.pt_field.nz);
+    this.redraw();
+  }
+
+  pt_field_set_ny(_event: Event, value: number): void {
+    this.pt_field.set_dims(this.pt_field.nx, value, this.pt_field.nz);
+    this.redraw();
+  }
+
+  pt_field_set_nz(_event: Event, value: number): void {
+    this.pt_field.set_dims(this.pt_field.nx, this.pt_field.ny, value);
+    this.redraw();
+  }
+
+  pt_field_set_style(_event: Event, value: number): void {
+    this.pt_field.set_field_kind(value);
+    this.redraw();
+  }
+
+  pt_field_set_random_weight(_event: Event, value: number): void {
+    this.pt_field.set_pt_random_weight(value);
+    this.redraw();
   }
 
   resize_event(_e: ResizeObserverEntry[]): void {

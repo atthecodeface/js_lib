@@ -211,8 +211,23 @@ export class WebglPtFieldObj implements WebglObjKind {
     return sphere;
   }
 
+  set_num_points(num_points: number): WebglPtFieldObj {
+    this.num_points = num_points;
+    this.encoded = false;
+    return this;
+  }
+
+  set_dims(nx: number, ny: number = 0, nz: number = 0): WebglPtFieldObj {
+    this.nx = nx;
+    this.ny = ny;
+    this.nz = nz;
+    this.encoded = false;
+    return this;
+  }
+
   set_field_kind(field_kind: WebglPtFieldKind): WebglPtFieldObj {
     this.field_kind = field_kind;
+    this.encoded = false;
     return this;
   }
 

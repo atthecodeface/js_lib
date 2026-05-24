@@ -195,8 +195,21 @@ export class WebglPtFieldObj {
         sphere.field_kind = WebglPtFieldKind.SphereMap;
         return sphere;
     }
+    set_num_points(num_points) {
+        this.num_points = num_points;
+        this.encoded = false;
+        return this;
+    }
+    set_dims(nx, ny = 0, nz = 0) {
+        this.nx = nx;
+        this.ny = ny;
+        this.nz = nz;
+        this.encoded = false;
+        return this;
+    }
     set_field_kind(field_kind) {
         this.field_kind = field_kind;
+        this.encoded = false;
         return this;
     }
     set_pt_random_weight(pt_random_weight) {

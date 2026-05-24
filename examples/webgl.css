@@ -76,8 +76,18 @@ html {
     position: absolute;
     top: 0px;
     left: 0px;
+    right: 0px;
     .fixed-content {
         /* Enable 'button' to be activated from z-index of -1 */
         pointer-events: none;
+    }
+}
+
+#pt_field_ctls {
+    pointer-events: auto;
+    flex-flow: column;
+    display: flex;
+    input {
+        flex: 1 1 auto;
     }
 }
