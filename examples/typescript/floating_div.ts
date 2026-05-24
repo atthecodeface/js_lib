@@ -1,4 +1,4 @@
-import { Tabs } from "./tabbed.js";
+import { Tabs } from "./tabs.js";
 import * as html from "./html.js";
 
 enum SelectedTab {
@@ -9,22 +9,24 @@ enum SelectedTab {
 }
 
 export class Main {
-  tabs: Tabs;
+  tabs: Tabs<SelectedTab>;
   selected_tab: SelectedTab = SelectedTab.FixedOne;
 
-  tab_ids: Map<SelectedTab, string> = new Map([
-    [SelectedTab.FixedOne, "#tab-fixed-one"],
-    [SelectedTab.FixedTwo, "#tab-fixed-two"],
-    [SelectedTab.FloatingSvg, "#tab-floating-svg"],
-    [SelectedTab.FloatingText, "#tab-floating-text"],
-  ]);
+  tab_list: [string, string, SelectedTab][] = [
+    ["tab-fixed-one", "Fixed one", SelectedTab.FixedOne],
+    ["tab-fixed-two", "Fixed two", SelectedTab.FixedTwo],
+    ["tab-floating-svg", "SVG", SelectedTab.FloatingSvg],
+    ["tab-floating-text", "Floating text", SelectedTab.FloatingText],
+  ];
 
   resize_observer: ResizeObserver;
 
   constructor() {
-    this.tabs = new Tabs("#tab-list", (id) => {
-      this.tab_selected(id);
-    });
+    this.tabs = new Tabs(
+      "tab-list",
+      this.tab_selected.bind(this),
+      this.tab_list,
+    );
 
     this.resize_observer = new ResizeObserver(this.resize_event.bind(this));
 
@@ -50,13 +52,8 @@ export class Main {
     svg.style.height = `${size}px`;
   }
 
-  tab_selected(tab_id: string) {
-    this.selected_tab = SelectedTab.FixedOne;
-    for (const x of this.tab_ids) {
-      if (x[1] === tab_id) {
-        this.selected_tab = x[0];
-      }
-    }
+  tab_selected(tab: SelectedTab, _tab_id: string) {
+    this.selected_tab = tab;
     const e = new html.HtmlElement(
       document.getElementsByClassName("floating-div")![0]! as HTMLElement,
     );
