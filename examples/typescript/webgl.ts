@@ -51,10 +51,16 @@ export class Main implements mouse.MouseClient {
         new TabType().set_client(this.redraw_axes.bind(this)),
       ],
       [
+        "tab-pt-field",
+        "Point field",
+        new TabType().set_client(this.redraw_pt_field.bind(this)),
+      ],
+      [
         "tab-cube",
         "Cube",
         new TabType().set_client(this.redraw_cube.bind(this)),
       ],
+      ["tab-all", "All", new TabType().set_client(this.redraw_all.bind(this))],
     ]);
 
     this.camera = new WasmTransformf32();
@@ -82,8 +88,9 @@ export class Main implements mouse.MouseClient {
         new web_gl_flat.WebglFlatShader(),
       )!;
       this.axis = web_gl_flat.WebglFlatObj.axis(2, [
-        [10, 0.05],
-        [2, 0.1],
+        [10, 0.02],
+        [50, 0.01],
+        [2, 0.05],
       ]);
 
       this.cube = web_gl_3d_obj.Webgl3DObj.cuboid(6, 6, 6);
@@ -145,58 +152,82 @@ export class Main implements mouse.MouseClient {
     }
   }
 
-  redraw_axes(webgl: web_gl.Webgl): void {
+  redraw_common(webgl: web_gl.Webgl): Float32Array {
     const view_matrix = new Float32Array(16);
     this.camera.set_mat4(view_matrix);
-    this.webgl.set_projection_perspective(
+    webgl.set_projection_perspective(
       this.fov,
-      this.webgl.canvas.width / this.webgl.canvas.height,
+      webgl.canvas.width / webgl.canvas.height,
       1,
       15.0,
     );
+    return view_matrix;
+  }
 
-    this.webgl.set_viewport();
-    this.webgl.clear_buffer();
+  redraw_axes(webgl: web_gl.Webgl): void {
+    const view_matrix = this.redraw_common(webgl);
 
-    this.webgl.use_program(this.flat_program);
-    this.webgl.set_uniform_projection();
-    this.webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
-    this.webgl.set_uniform_mat4(web_gl.WebglUniform.Model, this.webgl.identity);
+    webgl.use_program(this.flat_program);
+    webgl.set_uniform_projection();
+    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+    webgl.set_uniform_mat4(
+      web_gl.WebglUniform.Model,
+      [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 1],
+    );
+    webgl.set_color([1, 0, 0.5, 1]);
+    webgl.draw(this.axis);
 
-    this.webgl.set_color([1, 0, 0.5, 1]);
-    this.webgl.draw(this.axis);
+    webgl.set_uniform_mat4(
+      web_gl.WebglUniform.Model,
+      [0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, -1, 0, 1],
+    );
+    webgl.set_color([0, 0.5, 1, 1]);
+    webgl.draw(this.axis);
 
-    this.webgl.use_program(this.pt_field_program);
-    this.webgl.set_uniform_projection();
-    this.webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
-    this.webgl.set_uniform_mat4(web_gl.WebglUniform.Model, this.webgl.identity);
+    webgl.set_uniform_mat4(
+      web_gl.WebglUniform.Model,
+      [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 1],
+    );
+    webgl.set_color([0.5, 1, 0, 1]);
+    webgl.draw(this.axis);
+  }
+
+  redraw_pt_field(webgl: web_gl.Webgl): void {
+    const view_matrix = this.redraw_common(webgl);
+
+    webgl.use_program(this.pt_field_program);
+    webgl.set_uniform_projection();
+    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+    webgl.set_uniform_mat4(web_gl.WebglUniform.Model, webgl.identity);
     webgl.draw(this.pt_field!);
   }
 
   redraw_cube(webgl: web_gl.Webgl): void {
-    const view_matrix = new Float32Array(16);
-    this.camera.set_mat4(view_matrix);
-    this.webgl.set_projection_perspective(
-      this.fov,
-      this.webgl.canvas.width / this.webgl.canvas.height,
-      1, // near
-      15.0, // far
-    );
+    const view_matrix = this.redraw_common(webgl);
 
-    this.webgl.set_viewport();
-    this.webgl.clear_buffer();
-
-    this.webgl.use_program(this.simple_program);
-    this.webgl.set_color([0.5, 1, 0.2, 1]);
+    webgl.use_program(this.simple_program);
+    webgl.set_color([0.5, 1, 0.2, 1]);
     if (this.texture !== null) {
       webgl.set_texture(this.texture);
     }
 
-    this.webgl.set_uniform_projection();
-    this.webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
-    this.webgl.set_uniform_mat4(web_gl.WebglUniform.Model, this.webgl.identity);
+    webgl.set_uniform_projection();
+    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
 
-    this.webgl.draw(this.cube);
+    webgl.set_uniform_mat4(web_gl.WebglUniform.Model, webgl.identity);
+    webgl.draw(this.cube);
+
+    webgl.set_uniform_mat4(
+      web_gl.WebglUniform.Model,
+      [0.05, 0, 0, 0, 0, 0.05, 0, 0, 0, 0, 0.05, 0, 0, 0, 0, 1],
+    );
+    webgl.draw(this.cube);
+  }
+
+  redraw_all(webgl: web_gl.Webgl): void {
+    this.redraw_axes(webgl);
+    this.redraw_cube(webgl);
+    this.redraw_pt_field(webgl);
   }
 
   redraw(): void {
@@ -205,6 +236,9 @@ export class Main implements mouse.MouseClient {
     }
     const tab_redraw_fn = this.selected_tab.redraw_fn;
     if (tab_redraw_fn !== null) {
+      this.webgl.set_viewport();
+      this.webgl.clear_buffer();
+
       tab_redraw_fn(this.webgl);
     }
   }

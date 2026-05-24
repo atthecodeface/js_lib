@@ -32,10 +32,16 @@ export class Main {
                 new TabType().set_client(this.redraw_axes.bind(this)),
             ],
             [
+                "tab-pt-field",
+                "Point field",
+                new TabType().set_client(this.redraw_pt_field.bind(this)),
+            ],
+            [
                 "tab-cube",
                 "Cube",
                 new TabType().set_client(this.redraw_cube.bind(this)),
             ],
+            ["tab-all", "All", new TabType().set_client(this.redraw_all.bind(this))],
         ]);
         this.camera = new WasmTransformf32();
         this.camera.translate_by([0, 0, 2]);
@@ -53,8 +59,9 @@ export class Main {
             this.pt_field_program = this.webgl.compile_program(new web_gl_pt_field.WebglPtFieldShader());
             this.flat_program = this.webgl.compile_program(new web_gl_flat.WebglFlatShader());
             this.axis = web_gl_flat.WebglFlatObj.axis(2, [
-                [10, 0.05],
-                [2, 0.1],
+                [10, 0.02],
+                [50, 0.01],
+                [2, 0.05],
             ]);
             this.cube = web_gl_3d_obj.Webgl3DObj.cuboid(6, 6, 6);
             /** pt_field sphere random surface uses nx=10000, ny=10000, nz=1, pt_weight 1, size_range whatever, is_sphere true */
@@ -97,40 +104,53 @@ export class Main {
             e.set_style("display", "none");
         }
     }
-    redraw_axes(webgl) {
+    redraw_common(webgl) {
         const view_matrix = new Float32Array(16);
         this.camera.set_mat4(view_matrix);
-        this.webgl.set_projection_perspective(this.fov, this.webgl.canvas.width / this.webgl.canvas.height, 1, 15.0);
-        this.webgl.set_viewport();
-        this.webgl.clear_buffer();
-        this.webgl.use_program(this.flat_program);
-        this.webgl.set_uniform_projection();
-        this.webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
-        this.webgl.set_uniform_mat4(web_gl.WebglUniform.Model, this.webgl.identity);
-        this.webgl.set_color([1, 0, 0.5, 1]);
-        this.webgl.draw(this.axis);
-        this.webgl.use_program(this.pt_field_program);
-        this.webgl.set_uniform_projection();
-        this.webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
-        this.webgl.set_uniform_mat4(web_gl.WebglUniform.Model, this.webgl.identity);
+        webgl.set_projection_perspective(this.fov, webgl.canvas.width / webgl.canvas.height, 1, 15.0);
+        return view_matrix;
+    }
+    redraw_axes(webgl) {
+        const view_matrix = this.redraw_common(webgl);
+        webgl.use_program(this.flat_program);
+        webgl.set_uniform_projection();
+        webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 1]);
+        webgl.set_color([1, 0, 0.5, 1]);
+        webgl.draw(this.axis);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, [0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, -1, 0, 1]);
+        webgl.set_color([0, 0.5, 1, 1]);
+        webgl.draw(this.axis);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 1]);
+        webgl.set_color([0.5, 1, 0, 1]);
+        webgl.draw(this.axis);
+    }
+    redraw_pt_field(webgl) {
+        const view_matrix = this.redraw_common(webgl);
+        webgl.use_program(this.pt_field_program);
+        webgl.set_uniform_projection();
+        webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, webgl.identity);
         webgl.draw(this.pt_field);
     }
     redraw_cube(webgl) {
-        const view_matrix = new Float32Array(16);
-        this.camera.set_mat4(view_matrix);
-        this.webgl.set_projection_perspective(this.fov, this.webgl.canvas.width / this.webgl.canvas.height, 1, // near
-        15.0);
-        this.webgl.set_viewport();
-        this.webgl.clear_buffer();
-        this.webgl.use_program(this.simple_program);
-        this.webgl.set_color([0.5, 1, 0.2, 1]);
+        const view_matrix = this.redraw_common(webgl);
+        webgl.use_program(this.simple_program);
+        webgl.set_color([0.5, 1, 0.2, 1]);
         if (this.texture !== null) {
             webgl.set_texture(this.texture);
         }
-        this.webgl.set_uniform_projection();
-        this.webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
-        this.webgl.set_uniform_mat4(web_gl.WebglUniform.Model, this.webgl.identity);
-        this.webgl.draw(this.cube);
+        webgl.set_uniform_projection();
+        webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, webgl.identity);
+        webgl.draw(this.cube);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, [0.05, 0, 0, 0, 0, 0.05, 0, 0, 0, 0, 0.05, 0, 0, 0, 0, 1]);
+        webgl.draw(this.cube);
+    }
+    redraw_all(webgl) {
+        this.redraw_axes(webgl);
+        this.redraw_cube(webgl);
+        this.redraw_pt_field(webgl);
     }
     redraw() {
         if (this.selected_tab === null) {
@@ -138,6 +158,8 @@ export class Main {
         }
         const tab_redraw_fn = this.selected_tab.redraw_fn;
         if (tab_redraw_fn !== null) {
+            this.webgl.set_viewport();
+            this.webgl.clear_buffer();
             tab_redraw_fn(this.webgl);
         }
     }
