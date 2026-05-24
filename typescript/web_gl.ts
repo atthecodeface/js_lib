@@ -21,21 +21,21 @@ export enum WebglUniform {
 }
 
 export interface WebglObjKind {
-  webgl_create(webgl: WebGLRenderingContext): void;
+  webgl_create(webgl: WebGL2RenderingContext): void;
   webgl_set_uniforms(_wgl: Webgl): void;
-  webgl_draw(webgl: WebGLRenderingContext): void;
+  webgl_draw(webgl: WebGL2RenderingContext): void;
 }
 
 export class WebglProgram {
   owner: string;
-  webgl: WebGLRenderingContext;
+  webgl: WebGL2RenderingContext;
   program: WebGLProgram;
   uniforms: (WebGLUniformLocation | null)[];
   matrix = new Float32Array(16);
 
   constructor(
     shader: WebglShaderSrc,
-    webgl: WebGLRenderingContext,
+    webgl: WebGL2RenderingContext,
     program: WebGLProgram,
   ) {
     this.owner = shader.id;
@@ -57,6 +57,13 @@ export class WebglProgram {
     for (const e of shader.extra_uniforms) {
       const u = webgl.getUniformLocation(program, e);
       this.uniforms.push(u);
+    }
+  }
+
+  set_uniform_ivec4(uniform: WebglUniform, matrix: Int32List) {
+    const u = this.uniforms[uniform];
+    if (u !== null) {
+      this.webgl.uniform4iv(u!, matrix);
     }
   }
 
@@ -166,19 +173,33 @@ export class Webgl {
   programs: WebglProgram[] = [];
   current_program: WebglProgram | null = null;
 
-  webgl: WebGLRenderingContext | null = null;
+  webgl: WebGL2RenderingContext | null = null;
+  projection: Float32Array;
+  view: Float32Array;
+  model: Float32Array;
+  identity: Float32Array = new Float32Array([
+    1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+  ]);
 
   constructor(log: Log, canvas: HTMLCanvasElement) {
     this.logger = new Logger(log, "webgl");
-
     this.canvas = canvas;
+    this.projection = new Float32Array([
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+    ]);
+    this.view = new Float32Array([
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+    ]);
+    this.model = new Float32Array([
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+    ]);
   }
 
   /** Start WebGL - invoke this when the window has loaded
    *
    */
   start_webgl(): boolean {
-    var gl: WebGLRenderingContext | null;
+    var gl: WebGL2RenderingContext | null;
     try {
       gl = this.canvas.getContext("webgl2");
     } catch (x) {
@@ -259,6 +280,16 @@ export class Webgl {
     return n;
   }
 
+  set_viewport(bbox: [number, number, number, number] = [0, 0, 0, 0]) {
+    if (bbox[3] === 0) {
+      const w = this.canvas.width;
+      const h = this.canvas.height;
+      this.webgl!.viewport(0, 0, w, h);
+    } else {
+      this.webgl!.viewport(bbox[0], bbox[1], bbox[2], bbox[3]);
+    }
+  }
+
   clear_buffer() {
     if (this.webgl === null) {
       return;
@@ -294,6 +325,85 @@ export class Webgl {
     }
   }
 
+  set_view_camera(
+    cxyz: [number, number, number],
+    direction: [number, number, number],
+    up: [number, number, number],
+  ) {
+    this.view.fill(0);
+    const ddl_sq =
+      direction[0] * direction[0] +
+      direction[1] * direction[1] +
+      direction[2] * direction[2];
+    const upl_sq = up[0] * up[0] + up[1] * up[1] + up[2] * up[2];
+    const upl = Math.sqrt(upl_sq);
+    const ddl = Math.sqrt(ddl_sq);
+    const upl_ddl = upl * ddl;
+    const normal = [
+      (direction[1] * up[2] - direction[2] * up[1]) / upl_ddl,
+      (direction[2] * up[0] - direction[0] * up[2]) / upl_ddl,
+      (direction[0] * up[1] - direction[1] * up[0]) / upl_ddl,
+    ];
+
+    this.view[0] = normal[0]! / ddl;
+    this.view[1] = normal[1]! / ddl;
+    this.view[2] = normal[2]! / ddl;
+    this.view[4] = up[0] / ddl;
+    this.view[5] = up[1] / ddl;
+    this.view[6] = up[2] / ddl;
+    this.view[8] = direction[0] / ddl;
+    this.view[9] = direction[1] / ddl;
+    this.view[10] = direction[2] / ddl;
+    this.view[11] = -cxyz[0];
+    this.view[12] = -cxyz[1];
+    this.view[13] = -cxyz[2];
+  }
+
+  /** Set the projection matrix such that the camera is at (0,0,0) looking in the direction of Z (positive or negative, depending on flip_z)
+   *
+   * near is the closest value of Z (normally +ve) that should be visible (flip_z is normally false)
+   *
+   * far is the furthest value of Z (normally +ve) that should be visible (flip_z is normally false)
+   *
+   * aspect_ratio is the width / height of the view
+   *
+   * tan_hfovh is the tan of half of the horizontal field of view
+   *
+   * The projection is effectively mapping (x,y,z) to (X,Y,Z,W), with X/W,Y/W,Z/W in the +-1 cube at the origin; the 'Z/W' value is the depth in the depth buffer.
+   *
+   * @param tan_hfovh
+   * @param aspect_ratio
+   * @param near
+   * @param far
+   * @param flip_z
+   */
+  set_projection_perspective(
+    tan_hfovh: number,
+    aspect_ratio: number,
+    near: number, // closest 'z' to use
+    far: number, // larger value than near
+    _flip_z: boolean = false,
+  ) {
+    // Flip-z of false:
+    //  Post-scale Z = z * (near + far) / (near-far) - (near * far * 2) / (near - far) =  (z * near + z * far - near * far * 2) / (near - far)
+    //  Post-scale W = -z
+    // Post perspective Z_out = (z * near + z * far + near - near * far * 2) / (-z * (near - far));
+    //   if z in is near, Z_out = (near * near + near * far - near * far * 2) / (-near*(near - far));
+    //                          = (near + far - far * 2) / (far-near);
+    //                          = (near - far) / (far-near);
+    //                          = -1;
+    //   if z in is far, Z_out = (far * near + far * far - near * far * 2) / (-far*(far-near));
+    //                          = (far - near) / -(far-near);
+    //                          = 1;
+    const f = 1.0 / tan_hfovh;
+    this.projection.fill(0);
+    this.projection[0] = f;
+    this.projection[5] = f * aspect_ratio;
+    this.projection[10] = (1.0 * (near + far)) / (far - near); // Scale z by this
+    this.projection[11] = (1.0 * (near * far * 2)) / (near - far); // Add this to scaled z for Z
+    this.projection[14] = 1; // Scale of 'z' to get 'w', which is used to divide x, y, z
+  }
+
   set_uniform_float(uniform: WebglUniform, value: number) {
     if (this.current_program === null) {
       return;
@@ -317,6 +427,31 @@ export class Webgl {
       return;
     }
     this.current_program.set_uniform_mat4(uniform, matrix, transpose);
+  }
+
+  set_uniform_ivec4(uniform: WebglUniform, matrix: Int32List) {
+    if (this.current_program === null) {
+      return;
+    }
+    this.current_program.set_uniform_ivec4(uniform, matrix);
+  }
+
+  set_uniform_projection() {
+    if (this.current_program === null) {
+      return;
+    }
+    this.current_program.set_uniform_mat4(
+      WebglUniform.Projection,
+      this.projection,
+      true,
+    );
+  }
+
+  set_uniform_view() {
+    if (this.current_program === null) {
+      return;
+    }
+    this.current_program.set_uniform_mat4(WebglUniform.View, this.view, true);
   }
 
   set_color(color: number[]) {

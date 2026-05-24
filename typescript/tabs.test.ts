@@ -29,9 +29,9 @@ test("Basic", () => {
       global.last_selected_number = num;
     },
     [
-      ["one", 1],
-      ["two", 2],
-      ["three", 3],
+      ["one", "One", 1],
+      ["two", "Two", 2],
+      ["three", "Three", 3],
     ],
   );
 

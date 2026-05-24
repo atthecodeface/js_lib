@@ -13,7 +13,7 @@
  *   Tabbed.hash_change => select_hash; Tab.id => Tab.get_hash; Tab.select_tab => private
  */
 
-import { HtmlElement } from "./html";
+import { HtmlElement } from "./html.js";
 
 /**
  * A 'tab' in a tabbed page; this is private to the library
@@ -53,6 +53,7 @@ class Tab<T> {
     this.div = div;
     this.name = name;
     this.client = client;
+    this.set_hidden(true);
   }
 
   /**
@@ -102,7 +103,7 @@ export class Tabs<T> {
   constructor(
     div_id: string,
     tab_select_callback: (t: T, id: string) => void,
-    tabs: [[string, T]],
+    tabs: [string, string | HtmlElement | Node, T][],
   ) {
     this.tabs = [];
     this.callback = tab_select_callback;
@@ -114,24 +115,25 @@ export class Tabs<T> {
     }
     this.ul = new HtmlElement(tab_list!).clear().add_ele("ul");
 
-    for (const [name, client] of tabs) {
-      this.add_tab(name, client);
+    for (const [name, content, client] of tabs) {
+      this.add_tab(name, content, client);
     }
     window.addEventListener("hashchange", () => {
       this.select(location.hash.slice(1));
     });
   }
 
-  add_tab(name: string, client: T) {
+  add_tab(name: string, content: string | HtmlElement | Node, client: T) {
     const href = "#" + name;
     const div = document.querySelector(href);
     if (div === null || !(div instanceof HTMLDivElement)) {
       throw new Error(
-        `tab "$ref" does not have a relevant div in the document`,
+        `tab "${href}" does not have a relevant div in the document`,
       );
     }
     const li = this.ul.add_ele("li");
     const a = li.add_ele("a", {}, [["href", href]]);
+    a.add_content(content);
     const tab = new Tab(li, new HtmlElement(div), name, client);
     this.tabs.push(tab);
     a.ele.addEventListener("click", (e: Event) => {
