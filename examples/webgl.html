@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Floating div</title>
+    </head>
+    <body>
+        <link href="webgl.css" rel="stylesheet" type="text/css" />
+        <script type="module" src="./webgl.js"></script>
+
+        <div id="floating-div" class="floating-div get_size_of_this">
+            <div class="flex box">
+                <div class="flex content">
+                    <div class="floating-resizable">
+                        <div id="WebglCanvas" class="set_size_of_this"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed-div">
+            <div id="tab-list" class="tab-list"></div>
+            <div class="fixed-content">
+                <div id="tab-axes">
+                    <h1>Axes</h1>
+                    This page has fixed content (this) that sits on top of a
+                    floating content
+                </div>
+                <div id="tab-cube">
+                    <h1>Cube</h1>
+                    This page has fixed content (this) that sits on top of a
+                    floating content
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
