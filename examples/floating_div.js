@@ -1,4 +1,4 @@
-import { Tabs } from "./tabbed.js";
+import { Tabs } from "./tabs.js";
 import * as html from "./html.js";
 var SelectedTab;
 (function (SelectedTab) {
@@ -10,15 +10,13 @@ var SelectedTab;
 export class Main {
     constructor() {
         this.selected_tab = SelectedTab.FixedOne;
-        this.tab_ids = new Map([
-            [SelectedTab.FixedOne, "#tab-fixed-one"],
-            [SelectedTab.FixedTwo, "#tab-fixed-two"],
-            [SelectedTab.FloatingSvg, "#tab-floating-svg"],
-            [SelectedTab.FloatingText, "#tab-floating-text"],
-        ]);
-        this.tabs = new Tabs("#tab-list", (id) => {
-            this.tab_selected(id);
-        });
+        this.tab_list = [
+            ["tab-fixed-one", "Fixed one", SelectedTab.FixedOne],
+            ["tab-fixed-two", "Fixed two", SelectedTab.FixedTwo],
+            ["tab-floating-svg", "SVG", SelectedTab.FloatingSvg],
+            ["tab-floating-text", "Floating text", SelectedTab.FloatingText],
+        ];
+        this.tabs = new Tabs("tab-list", this.tab_selected.bind(this), this.tab_list);
         this.resize_observer = new ResizeObserver(this.resize_event.bind(this));
         for (const resizable_content of document.getElementsByClassName("get_size_of_this")) {
             this.resize_observer.observe(resizable_content);
@@ -34,13 +32,8 @@ export class Main {
         svg.style.width = `${size}px`;
         svg.style.height = `${size}px`;
     }
-    tab_selected(tab_id) {
-        this.selected_tab = SelectedTab.FixedOne;
-        for (const x of this.tab_ids) {
-            if (x[1] === tab_id) {
-                this.selected_tab = x[0];
-            }
-        }
+    tab_selected(tab, _tab_id) {
+        this.selected_tab = tab;
         const e = new html.HtmlElement(document.getElementsByClassName("floating-div")[0]);
         switch (this.selected_tab) {
             case SelectedTab.FixedOne:

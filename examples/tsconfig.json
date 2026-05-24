@@ -45,9 +45,11 @@
     "../examples/typescript/blob.ts",
     "../examples/typescript/inputs.ts",
     "../examples/typescript/floating_div.ts",
+    "../examples/typescript/webgl.ts",
     "../typescript/html.ts",
     "../typescript/log.ts",
     "../typescript/mouse.ts",
-    "../typescript/tabbed.ts",
+    "../typescript/tabs.ts",
+    "../typescript/wasm_pkg.ts",
   ],
 }
