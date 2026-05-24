@@ -372,35 +372,31 @@ export class Webgl {
    * The projection is effectively mapping (x,y,z) to (X,Y,Z,W), with X/W,Y/W,Z/W in the +-1 cube at the origin; the 'Z/W' value is the depth in the depth buffer.
    *
    * @param tan_hfovh
-   * @param aspect_ratio
-   * @param near
+   * @param aspect_ratio  width of window divide by height of window
+   * @param near Z value that maps to
    * @param far
-   * @param flip_z
    */
   set_projection_perspective(
     tan_hfovh: number,
     aspect_ratio: number,
     near: number, // closest 'z' to use
     far: number, // larger value than near
-    _flip_z: boolean = false,
   ) {
     // Flip-z of false:
-    //  Post-scale Z = z * (near + far) / (near-far) - (near * far * 2) / (near - far) =  (z * near + z * far - near * far * 2) / (near - far)
-    //  Post-scale W = -z
-    // Post perspective Z_out = (z * near + z * far + near - near * far * 2) / (-z * (near - far));
-    //   if z in is near, Z_out = (near * near + near * far - near * far * 2) / (-near*(near - far));
-    //                          = (near + far - far * 2) / (far-near);
-    //                          = (near - far) / (far-near);
+    //  Post-scale Z = z * (near + far) / (far - near) - (near * far * 2) / (far - near) =  (z * near + z * far - near * far * 2) / (far - near)
+    //  Post-scale W = z
+    // Post perspective Z_out = (near + far - near * far * 2 / z) / (far - near);
+    //   if z in is near, Z_out = (near + far - far * 2) / (far - near);
     //                          = -1;
-    //   if z in is far, Z_out = (far * near + far * far - near * far * 2) / (-far*(far-near));
-    //                          = (far - near) / -(far-near);
+    //   if z in is far, Z_out = (near + far - near * 2) / (far - near);
+    //                          = (far - near) / (far - near);
     //                          = 1;
     const f = 1.0 / tan_hfovh;
     this.projection.fill(0);
-    this.projection[0] = f;
-    this.projection[5] = f * aspect_ratio;
+    this.projection[0] = f; // Note resultant X out is f * x / w = f.x/z
+    this.projection[5] = f * aspect_ratio; // Note resultant Y out is f * y * ar / w = f.x/z
     this.projection[10] = (1.0 * (near + far)) / (far - near); // Scale z by this
-    this.projection[11] = (1.0 * (near * far * 2)) / (near - far); // Add this to scaled z for Z
+    this.projection[11] = (2.0 * (near * far)) / (near - far); // Add this to scaled z for Z
     this.projection[14] = 1; // Scale of 'z' to get 'w', which is used to divide x, y, z
   }
 
