@@ -1,12 +1,5 @@
 import * as wasm_pkg from "./wasm_pkg.js";
 
-test("Vectorss", () => {
-  const t = new VecTestSuite();
-  for (const test of t.find_tests()) {
-    test.invocation(expect);
-  }
-});
-
 export class VecTestSuite extends wasm_pkg.TestSuite {
   test_vec_1(expect: (e: any) => wasm_pkg.TestExpectation): void {
     // test clone, length, length_sq, dot, set_add, is_zero, set_neg

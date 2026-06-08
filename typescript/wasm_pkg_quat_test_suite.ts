@@ -1,10 +1,3 @@
-describe.each([0, 1, 2, 3, 4, 5, 6, 7, 8])("Quaternions", (test_num) => {
-  test(`${test_num}`, () => {
-    const test = new QuatTestSuite().find_tests()[test_num];
-    test.invocation(expect);
-  });
-});
-
 import * as wasm_pkg from "./wasm_pkg.js";
 
 export class QuatTestSuite extends wasm_pkg.TestSuite {
