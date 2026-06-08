@@ -357,13 +357,19 @@ export class Webgl {
     this.view[11] = -cxyz[0];
     this.view[12] = -cxyz[1];
     this.view[13] = -cxyz[2];
+    this.view[15] = 1;
   }
 
-  /** Set the projection matrix such that the camera is at (0,0,0) looking in the direction of Z (positive or negative, depending on flip_z)
+  /**
+   * Set the projection matrix such that the camera is at (0,0,0) looking in the
+   * direction of +Z, such that the Z range 'near' to 'far' (far>near>0) is the
+   * Z clip range, and that every coordinate is scaled by 1/z
    *
-   * near is the closest value of Z (normally +ve) that should be visible (flip_z is normally false)
+   * Sets it *COLUMN MAJOR* so need to transpose
    *
-   * far is the furthest value of Z (normally +ve) that should be visible (flip_z is normally false)
+   * near is the closest value of Z (normally +ve) that should be visible
+   *
+   * far is the furthest value of Z (normally +ve) that should be visible
    *
    * aspect_ratio is the width / height of the view
    *
@@ -382,9 +388,8 @@ export class Webgl {
     near: number, // closest 'z' to use
     far: number, // larger value than near
   ) {
-    // Flip-z of false:
-    //  Post-scale Z = z * (near + far) / (far - near) - (near * far * 2) / (far - near) =  (z * near + z * far - near * far * 2) / (far - near)
-    //  Post-scale W = z
+    // Post-scale Z = z * (near + far) / (far - near) - (near * far * 2) / (far - near) =  (z * near + z * far - near * far * 2) / (far - near)
+    // Post-scale W = z
     // Post perspective Z_out = (near + far - near * far * 2 / z) / (far - near);
     //   if z in is near, Z_out = (near + far - far * 2) / (far - near);
     //                          = -1;
@@ -396,8 +401,54 @@ export class Webgl {
     this.projection[0] = f; // Note resultant X out is f * x / w = f.x/z
     this.projection[5] = f * aspect_ratio; // Note resultant Y out is f * y * ar / w = f.x/z
     this.projection[10] = (1.0 * (near + far)) / (far - near); // Scale z by this
-    this.projection[11] = (2.0 * (near * far)) / (near - far); // Add this to scaled z for Z
-    this.projection[14] = 1; // Scale of 'z' to get 'w', which is used to divide x, y, z
+    this.projection[11] = 1; // Scale of 'z' to get 'w', which is used to divide x, y, z
+    this.projection[14] = (2.0 * (near * far)) / (near - far); // Add this to scaled z for Z
+  }
+
+  /**
+   * Set the projection matrix such that the camera is at (0,0,0) looking in the
+   * direction of +Z, such that the Z range 'near' to 'far' (far>near>0) is the
+   * Z clip range, and that every coordinate is not scaled by distance
+   *
+   *
+   * Sets it *COLUMN MAJOR* so need to transpose
+   *
+   * near is the closest value of Z (normally +ve) that should be visible
+   *
+   * far is the furthest value of Z (normally +ve) that should be visible
+   *
+   * aspect_ratio is the width / height of the view
+   *
+   * tan_hfovh is the tan of half of the horizontal field of view
+   *
+   * The projection is effectively mapping (x,y,z) to (X,Y,Z,1), with X,Y,Z in the +-1 cube at the origin; the 'Z' value is the depth in the depth buffer.
+   *
+   * @param tan_hfovh
+   * @param aspect_ratio  width of window divide by height of window
+   * @param near z value that maps to -1
+   * @param far z value that maps to +1
+   */
+  set_projection_no_perspective(
+    tan_hfovh: number,
+    aspect_ratio: number,
+    near: number, // closest 'z' to use
+    far: number, // larger value than near
+  ) {
+    // Post-scale Z = z * 2 / (far - near) - (near + far) / (far - near) = (2z - near - far) / (far - near)
+    // Post-scale W = 1
+    // Post perspective Z_out = (2z - near - far) / (far - near) / 1
+    //   if z in is near, Z_out = (2*near - near - far) / (far - near);
+    //                          = -1;
+    //   if z in is far, Z_out = (2*far - near - far) / (far - near);
+    //                          = (far - near) / (far - near);
+    //                          = 1;
+    const f = 1.0 / tan_hfovh;
+    this.projection.fill(0);
+    this.projection[0] = f; // Note resultant X out is f * x / w = f.x/z
+    this.projection[5] = f * aspect_ratio; // Note resultant Y out is f * y * ar / w = f.x/z
+    this.projection[10] = 2.0 / (far - near); // Scale z by this
+    this.projection[15] = 1; // W is 1 for no perspective
+    this.projection[14] = (near + far) / (near - far); // Add this to scaled z for Z
   }
 
   set_uniform_float(uniform: WebglUniform, value: number) {
@@ -439,7 +490,6 @@ export class Webgl {
     this.current_program.set_uniform_mat4(
       WebglUniform.Projection,
       this.projection,
-      true,
     );
   }
 
