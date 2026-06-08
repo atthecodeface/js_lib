@@ -32,6 +32,7 @@ class Tab {
         this.div = div;
         this.name = name;
         this.client = client;
+        this.set_hidden(true);
     }
     /**
      * Set the 'hidden' style for the div associated with this tab
@@ -66,21 +67,22 @@ class Tabs {
             throw new Error(`Failed to make 'Tabs' as ${div_id} was not found`);
         }
         this.ul = new html_js_1.HtmlElement(tab_list).clear().add_ele("ul");
-        for (const [name, client] of tabs) {
-            this.add_tab(name, client);
+        for (const [name, content, client] of tabs) {
+            this.add_tab(name, content, client);
         }
         window.addEventListener("hashchange", () => {
             this.select(location.hash.slice(1));
         });
     }
-    add_tab(name, client) {
+    add_tab(name, content, client) {
         const href = "#" + name;
         const div = document.querySelector(href);
         if (div === null || !(div instanceof HTMLDivElement)) {
-            throw new Error(`tab "$ref" does not have a relevant div in the document`);
+            throw new Error(`tab "${href}" does not have a relevant div in the document`);
         }
         const li = this.ul.add_ele("li");
         const a = li.add_ele("a", {}, [["href", href]]);
+        a.add_content(content);
         const tab = new Tab(li, new html_js_1.HtmlElement(div), name, client);
         this.tabs.push(tab);
         a.ele.addEventListener("click", (e) => {

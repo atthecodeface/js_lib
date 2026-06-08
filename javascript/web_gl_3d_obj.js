@@ -15,19 +15,23 @@ class Webgl3DObjSimpleShader {
 
   out vec2 vTextureCoord;
   void main() {
-            vec4 pos;
-            pos = projection * view * model * position;
-            gl_Position = pos;
-            vTextureCoord = tex_coord;
+    vec4 pos;
+    pos = projection * view * model * position;
+    gl_Position = pos;
+    vTextureCoord = tex_coord;
   }
 `;
         this.fragment = `#version 300 es
   precision mediump float;
-  in vec2 vTextureCoord;
   uniform vec4 color;
+  uniform sampler2D uSampler;
+
+  in vec2 vTextureCoord;
+
   out vec4 FragColor; // must be the only output declaration; is not implicit!
+
   void main() {
-    FragColor =  texture2D(uSampler, texcoord);
+    FragColor = texture(uSampler, vTextureCoord);
  }
   `;
     }
@@ -111,13 +115,13 @@ class Webgl3DObj {
             -dx,
             dy,
             dz,
-            -dx,
-            -dy,
+            dx,
+            dy,
             dz, // b, c
             -dx,
             -dy,
             dz,
-            -dx,
+            dx,
             -dy,
             dz, // q, r
         ]);
@@ -155,8 +159,12 @@ class Webgl3DObj {
         //
         // Points/texcoords are stored lmnok hgijf bcqr
         cube.indices = new Uint16Array([
-            0, 1, 13, 0, 13, 12, 1, 5, 7, 1, 5, 2, 5, 6, 10, 5, 10, 11, 6, 0, 4, 6, 4,
-            9, 3, 2, 7, 3, 7, 8, 0, 1, 5, 0, 5, 6,
+            0, 1, 13, 0, 13, 12,
+            1, 6, 7, 1, 7, 2,
+            3, 2, 7, 3, 7, 8,
+            0, 1, 6, 0, 5, 6,
+            5, 0, 4, 5, 4, 9,
+            6, 5, 10, 6, 10, 11,
         ]);
         cube.num_vertices = 14;
         cube.num_indices = 36;

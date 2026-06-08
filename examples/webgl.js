@@ -44,7 +44,7 @@ export class Main {
             ["tab-all", "All", new TabType().set_client(this.redraw_all.bind(this))],
         ]);
         this.camera = new WasmTransformf32();
-        this.camera.translate_by([0, 0, 2]);
+        this.camera.translate_by([0, 0, 4]);
         this.resize_observer = new ResizeObserver(this.resize_event.bind(this));
         const div = document.getElementById("WebglCanvas");
         const canvas = document.createElement("canvas");
@@ -63,7 +63,7 @@ export class Main {
                 [50, 0.01],
                 [2, 0.05],
             ]);
-            this.cube = web_gl_3d_obj.Webgl3DObj.cuboid(6, 6, 6);
+            this.cube = web_gl_3d_obj.Webgl3DObj.cuboid(1, 1, 1);
             /** pt_field sphere random surface uses nx=10000, ny=10000, nz=1, pt_weight 1, size_range whatever, is_sphere true */
             /** pt_field square random surface uses nx=10000, ny=10000, nz=1, pt_weight 1, size_range whatever, is_sphere false */
             /** pt_field cube random volume uses nx=1000, ny=1000, nz=1000, pt_weight 1, size_range whatever, is_sphere false */
@@ -138,7 +138,7 @@ export class Main {
     redraw_common(webgl) {
         const view_matrix = new Float32Array(16);
         this.camera.set_mat4(view_matrix);
-        webgl.set_projection_perspective(this.fov, webgl.canvas.width / webgl.canvas.height, 1, 15.0);
+        webgl.set_projection_perspective(this.fov, webgl.canvas.width / webgl.canvas.height, 0.05, 15.0);
         return view_matrix;
     }
     redraw_axes(webgl) {
@@ -165,22 +165,30 @@ export class Main {
         webgl.draw(this.pt_field);
     }
     redraw_cube(webgl) {
-        const view_matrix = this.redraw_common(webgl);
         webgl.use_program(this.simple_program);
         webgl.set_color([0.5, 1, 0.2, 1]);
         if (this.texture !== null) {
             webgl.set_texture(this.texture);
         }
+        webgl.set_projection_perspective(this.fov, webgl.canvas.width / webgl.canvas.height, 0.1, 15.0);
+        const view_matrix_at_origin = new Float32Array(16);
+        const q = new WasmQuatf32(0, 0, 0, 0);
+        this.camera.set_q(q);
+        q.set_mat4(view_matrix_at_origin);
         webgl.set_uniform_projection();
-        webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
-        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, webgl.identity);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix_at_origin, false);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, [8, 0, 0, 0, 0, 8, 0, 0, 0, 0, 8, 0, 0, 0, 0, 1]);
         webgl.draw(this.cube);
-        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, [0.05, 0, 0, 0, 0, 0.05, 0, 0, 0, 0, 0.05, 0, 0, 0, 0, 1]);
+        webgl.clear_depth_buffer();
+        const view_matrix = this.redraw_common(webgl);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+        webgl.set_uniform_mat4(web_gl.WebglUniform.Model, [0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1]);
         webgl.draw(this.cube);
     }
     redraw_all(webgl) {
-        this.redraw_axes(webgl);
+        // Cube first as it has the background skymap
         this.redraw_cube(webgl);
+        this.redraw_axes(webgl);
         this.redraw_pt_field(webgl);
     }
     redraw() {
