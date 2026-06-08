@@ -51,6 +51,16 @@
     "typescript/web_gl_pt_field.ts",
     "typescript/wasm_memory.ts",
 
+    "typescript/wasm_quat.ts",
+    "typescript/wasm_vec.ts",
+    "typescript/wasm_mat.ts",
+    "typescript/wasm_transform.ts",
+
+    "typescript/vector.ts",
+    "typescript/quaternion.ts",
+
     "typescript/wasm_pkg.ts",
+
+    "typescript/wasm_pkg_vec.test.ts",
   ],
 }
