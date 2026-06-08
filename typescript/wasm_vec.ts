@@ -57,7 +57,7 @@ export class WasmVecBase implements WasmVec {
     r.v.set_scale_add_scaled(1.0, other.v, 1.0);
     return r;
   }
-  is_zero(): boolean {
+  get is_zero(): boolean {
     return this.v.is_zero();
   }
   get length(): number {
