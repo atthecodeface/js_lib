@@ -16,7 +16,7 @@ class WasmVecBase {
         r.v.set_scale_add_scaled(1.0, other.v, 1.0);
         return r;
     }
-    is_zero() {
+    get is_zero() {
         return this.v.is_zero();
     }
     get length() {
@@ -79,7 +79,7 @@ class WasmVec3f32 extends WasmVecBase {
     static zero() {
         return new WasmVec3f32(0, 0, 0);
     }
-    set(array) {
+    set_array(array) {
         this._v().set(array);
     }
     get array() {
@@ -95,7 +95,7 @@ class WasmVec3f64 extends WasmVecBase {
     static zero() {
         return new WasmVec3f64(0, 0, 0);
     }
-    set(array) {
+    set_array(array) {
         this._v().set(array);
     }
     get array() {
