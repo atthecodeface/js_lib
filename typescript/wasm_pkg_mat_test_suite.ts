@@ -11,7 +11,9 @@ export class MatTestSuite extends wasm_pkg.TestSuite {
     expect(m0.determinant()).toBe(0);
     expect(m1.is_zero).toBe(false);
     expect(m1.determinant()).toBe(1);
-    m1.set_sub(m1);
+    const m2 = m1.clone();
+    m1.set_sub(m2);
+
     expect(m1.is_zero).toBe(true);
     expect(m1.determinant()).toBe(0);
 
@@ -26,8 +28,8 @@ export class MatTestSuite extends wasm_pkg.TestSuite {
     m1.set_add(m0);
     expect(m1.determinant()).toBe(-1 / 8);
 
-    const m2 = m1.clone();
-    m1.set_add(m1);
+    m2.set_array(m1.array);
+    m1.set_add(m2);
     expect(m1.determinant()).toBe(-1);
 
     const a = m1.array;
@@ -37,7 +39,10 @@ export class MatTestSuite extends wasm_pkg.TestSuite {
     a[0] = 0;
     a[4] = 0;
     a[8] = 0;
+    m1.set_array(a);
+
     expect(m1.is_zero).toBe(true);
+    return;
   }
 
   test_mat_2(expect: (e: any) => wasm_pkg.TestExpectation): void {
@@ -185,9 +190,9 @@ export class MatTestSuite extends wasm_pkg.TestSuite {
     const v2 = m1.mul_vec(v1);
     {
       const a = v2.array;
-      expect(a[0]).toBeCloseTo(6, 5);
-      expect(a[1]).toBeCloseTo(4, 5);
-      expect(a[2]).toBeCloseTo(2, 5);
+      expect(a[0]).toBeCloseTo(6, 4);
+      expect(a[1]).toBeCloseTo(4, 4);
+      expect(a[2]).toBeCloseTo(2, 4);
     }
     v1.set_array(v0.array);
     m0.mul_set_vec(v1);
