@@ -61,6 +61,7 @@
 
     "typescript/wasm_pkg.ts",
 
-    "typescript/wasm_pkg_vec.test.ts",
+    "typescript/wasm_pkg_vec_test_suite.ts",
+    "typescript/wasm_pkg_quat_test_suite.ts",
   ],
 }
