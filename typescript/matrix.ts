@@ -39,7 +39,7 @@ export class Matrix<A extends LocalArrayType> {
   }
 }
 
-export class MatrixBase<
+export abstract class MatrixBase<
   A extends LocalArrayType,
   V extends WasmVec<A>,
 > extends Matrix<A> {

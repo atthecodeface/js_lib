@@ -72,6 +72,14 @@ export class WasmMat3f32
     super();
     this.data = new Float32Array(3 * 3);
   }
+  static zero(): WasmMat3f32 {
+    return new WasmMat3f32();
+  }
+  static identity(): WasmMat3f32 {
+    const x = WasmMat3f32.zero();
+    x.set_identity();
+    return x;
+  }
 }
 
 /*
