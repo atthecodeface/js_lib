@@ -1,6 +1,9 @@
 .PHONY: all test js help examples
 
 help:
+	@echo "To compile and test everything (javascript, examples, tests"
+	@echo "    make all"
+	@echo
 	@echo "To compile the typescript to the 'js' directory (where it is checked into git):"
 	@echo "    make js"
 	@echo
@@ -14,7 +17,7 @@ help:
 	@echo "    npm install --save-dev jest ts-jest @types/jest  jest-environment-jsdom @types/node fake-indexeddb"
 
 all:
-	$(MAKE) js test
+	$(MAKE) js test examples
 
 js:
 	npx tsc -b
