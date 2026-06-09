@@ -1,12 +1,15 @@
 import { Vector, Vec3 } from "./vector.js";
 
-interface WasmVec {
+export interface WasmVec<A> {
   // static zero(): this;
   clone(): this;
 
-  is_zero(): boolean;
+  get is_zero(): boolean;
   get length(): number;
   get length_sq(): number;
+
+  set_array(array: ArrayLike<number>): void;
+  get array(): A;
 
   set_zero(): void;
   set_neg(): void;
@@ -45,7 +48,9 @@ interface WasmVec {
 */
 }
 
-export class WasmVecBase implements WasmVec {
+export class WasmVecBase {
+  // @ts-ignore
+  readonly buffer: number;
   private v: Vector = new Vector();
   clone(): this {
     const t = new (this.constructor as new () => this)();
@@ -116,9 +121,7 @@ export class WasmVecBase implements WasmVec {
   }
 }
 
-export class WasmVec3f32 extends WasmVecBase implements WasmVec {
-  // @ts-ignore
-  readonly buffer: number;
+export class WasmVec3f32 extends WasmVecBase implements WasmVec<Float32Array> {
   constructor(x: number, y: number, z: number) {
     super();
     this._set_v(new Vec3(x, y, z));
@@ -126,7 +129,7 @@ export class WasmVec3f32 extends WasmVecBase implements WasmVec {
   static zero(): WasmVec3f32 {
     return new WasmVec3f32(0, 0, 0);
   }
-  set(array: Float32Array): void {
+  set_array(array: Float32Array): void {
     this._v().set(array);
   }
   get array(): Float32Array {
@@ -134,9 +137,7 @@ export class WasmVec3f32 extends WasmVecBase implements WasmVec {
   }
 }
 
-export class WasmVec3f64 extends WasmVecBase implements WasmVec {
-  // @ts-ignore
-  buffer: number;
+export class WasmVec3f64 extends WasmVecBase implements WasmVec<Float64Array> {
   constructor(x: number, y: number, z: number) {
     super();
     this._set_v(new Vec3(x, y, z));
@@ -144,7 +145,7 @@ export class WasmVec3f64 extends WasmVecBase implements WasmVec {
   static zero(): WasmVec3f64 {
     return new WasmVec3f64(0, 0, 0);
   }
-  set(array: Float64Array): void {
+  set_array(array: Float64Array): void {
     this._v().set(array);
   }
   get array(): Float64Array {

@@ -1,6 +1,6 @@
 import { Quaternion } from "./quaternion.js";
 
-export function is_zero(xs: number[]): boolean {
+export function is_zero(xs: ArrayLike<number>): boolean {
   for (var i = 0; i < xs.length; i++) {
     if (xs[i] != 0) {
       return false;
@@ -9,7 +9,7 @@ export function is_zero(xs: number[]): boolean {
   return true;
 }
 
-export function dot(xs: number[], oxs: number[]): number {
+export function dot(xs: ArrayLike<number>, oxs: ArrayLike<number>): number {
   var r = 0.0;
   for (var i = 0; i < xs.length; i++) {
     r += xs[i]! * oxs[i]!;
