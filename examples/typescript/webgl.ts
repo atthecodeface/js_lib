@@ -64,7 +64,7 @@ export class Main implements mouse.MouseClient {
     ]);
 
     this.camera = new WasmTransformf32();
-    this.camera.translate_by([0, 0, 4]);
+    this.camera.translate_by(new WasmVec3f32(0, 0, 4));
     this.resize_observer = new ResizeObserver(this.resize_event.bind(this));
 
     const div = document.getElementById("WebglCanvas")!;
@@ -239,7 +239,7 @@ export class Main implements mouse.MouseClient {
 
     webgl.use_program(this.flat_program);
     webgl.set_uniform_projection();
-    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, true);
     webgl.set_uniform_mat4(
       web_gl.WebglUniform.Model,
       [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 1],
@@ -267,7 +267,7 @@ export class Main implements mouse.MouseClient {
 
     webgl.use_program(this.pt_field_program);
     webgl.set_uniform_projection();
-    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, true);
     webgl.set_uniform_mat4(web_gl.WebglUniform.Model, webgl.identity);
     webgl.draw(this.pt_field!);
   }
@@ -279,23 +279,20 @@ export class Main implements mouse.MouseClient {
       webgl.set_texture(this.texture);
     }
 
-    webgl.set_projection_perspective(
-      this.fov,
-      webgl.canvas.width / webgl.canvas.height,
-      0.1,
-      15.0,
-    );
-
+    const view_matrix = this.redraw_common(webgl);
     const view_matrix_at_origin = new Float32Array(16);
-    const q = new WasmQuatf32(0, 0, 0, 0);
-    this.camera.set_q(q);
-    q.set_mat4(view_matrix_at_origin);
-
+    view_matrix_at_origin.set(view_matrix);
+    view_matrix_at_origin[3] = 0;
+    view_matrix_at_origin[7] = 0;
+    view_matrix_at_origin[11] = 0;
+    view_matrix_at_origin[12] = 0;
+    view_matrix_at_origin[13] = 0;
+    view_matrix_at_origin[14] = 0;
     webgl.set_uniform_projection();
     webgl.set_uniform_mat4(
       web_gl.WebglUniform.View,
       view_matrix_at_origin,
-      false,
+      true,
     );
     webgl.set_uniform_mat4(
       web_gl.WebglUniform.Model,
@@ -305,9 +302,7 @@ export class Main implements mouse.MouseClient {
 
     webgl.clear_depth_buffer();
 
-    const view_matrix = this.redraw_common(webgl);
-
-    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, false);
+    webgl.set_uniform_mat4(web_gl.WebglUniform.View, view_matrix, true);
     webgl.set_uniform_mat4(
       web_gl.WebglUniform.Model,
       [0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],

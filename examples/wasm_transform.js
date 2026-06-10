@@ -1,25 +1,15 @@
-import { Transform } from "./quaternion.js";
-class WasmTransformBase {
-    constructor() {
-        this.transform = new Transform();
-    }
-    rotate_by(q) {
-        this.transform.rotate_by(q._quaternion());
-    }
-    scale_by(s) {
-        this.transform.scale_by(s);
-    }
-    translate_by(dxyz) {
-        this.transform.translate_by(dxyz);
-    }
-    set_q(q) {
-        q._set_quaternion(this.transform.quat);
-    }
-    set_mat4(mat) {
-        this.transform.set_mat4(mat);
-    }
+import { WasmVec3f32, WasmVec3f64 } from "./wasm_vec.js";
+import { WasmQuatf32, WasmQuatf64 } from "./wasm_quat.js";
+import { Transform } from "./transform.js";
+class WasmTransformBase extends Transform {
 }
 export class WasmTransformf32 extends WasmTransformBase {
+    constructor() {
+        super(WasmVec3f32, WasmQuatf32);
+    }
 }
 export class WasmTransformf64 extends WasmTransformBase {
+    constructor() {
+        super(WasmVec3f64, WasmQuatf64);
+    }
 }

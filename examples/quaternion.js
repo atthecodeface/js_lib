@@ -1,4 +1,6 @@
-import { Vec3, dot, cross_product, set_scale_add_scaled } from "./vector.js";
+// import { Vec3 } from "./vector.js";
+import { set_scale_add_scaled, dot, cross_product } from "./test_utils.js";
+// import { LocalArrayType } from "./test_utils.js";
 export class Quaternion {
     constructor() {
         this.rijk = [1, 0, 0, 0];
@@ -136,49 +138,5 @@ export class Quaternion {
             0,
             1,
         ];
-    }
-}
-export class Transform {
-    constructor() {
-        this.scale = 1.0;
-        this.quat = new Quaternion();
-        this.translation = new Vec3(0, 0, 0);
-    }
-    scale_by(s) {
-        this.scale *= s;
-        this.translation.set_mulf(s);
-    }
-    translate_by(dxyz) {
-        const dxyz_vec = new Vec3(dxyz[0], dxyz[1], dxyz[2]);
-        this.translation.set_scale_add_scaled(1.0, dxyz_vec, 1.0);
-    }
-    rotate_by(q) {
-        // this.quat = q.clone().mul_assign_q(this.quat);
-        this.quat.mul_assign_q(q);
-        // this.translation.mul_assign_q(q);
-    }
-    set_mat4(mat) {
-        const r = this.quat.rijk[0];
-        const i = this.quat.rijk[1];
-        const j = this.quat.rijk[2];
-        const k = this.quat.rijk[3];
-        mat.set([
-            this.scale * (1 - 2 * (j * j + k * k)),
-            this.scale * 2 * (i * j - r * k),
-            this.scale * 2 * (i * k + r * j),
-            0.0 * this.translation.xyz[0] /*  */,
-            this.scale * 2 * (i * j + r * k),
-            this.scale * (1 - 2 * (i * i + k * k)),
-            this.scale * 2 * (j * k - r * i),
-            0.0 * this.translation.xyz[1] /*  */,
-            this.scale * 2 * (i * k - r * j),
-            this.scale * 2 * (j * k + r * i),
-            this.scale * (1 - 2 * (i * i + j * j)),
-            0.0 * this.translation.xyz[2] /*  */,
-            this.translation.xyz[0],
-            this.translation.xyz[1],
-            this.translation.xyz[2],
-            1,
-        ]);
     }
 }
