@@ -1,21 +1,22 @@
-import { WasmVecBase, WasmVec3f32, WasmVec3f64 } from "./wasm_vec.js";
-import { dot } from "./vector.js";
+import { WasmVec3, WasmVec3f32, WasmVec3f64 } from "./wasm_vec.js";
+import { LocalArrayType, dot } from "./test_utils.js";
 import { Quaternion } from "./quaternion.js";
 
-interface WasmQuat<V extends WasmVecBase> {
-  // static zero(): this;
-  // static idemtity(): this;
+export interface WasmQuat<A extends LocalArrayType, V extends WasmVec3<A>> {
+  // constructor new(i: $f, j: $f, k: $f, r: $f) -> $t {
+
+  // static average(q0: this, q1: this, q2?: this | null, q3?: this | null, q4?: this | null, q5?: this | null): this;
+  // static average_many(qs: this[]): this;
+  // static look_at(dirn: V, up: V): this;
+  // static mapping_vector_pair_to_vector_pair(di_m: V, dj_m: V, di_c: V, dj_c: V): this;
+  /**
+   * The axis need not be a unit vector; angle is in radians
+   */
+  // static of_axis_angle(axis: V, angle: number): this;
+  // static rotation_of_vec_to_vec(a: V, b: V): this;
+  // static unit(): this;
+
   clone(): this;
-
-  // new(i: $f, j: $f, k: $f, r: $f) -> $t {
-  //  unit() -> $t {
-
-  // pub fn of_axis_angle(axis: &$v, angle: $f) -> $t {
-  // pub fn look_at(dirn: & $v, up: & $v) -> $t {
-  // pub fn mapping_vector_pair_to_vector_pair(
-  // pub fn rotation_of_vec_to_vec(a: & $v, b: & $v) -> $t {
-  //   pub fn array(&self) -> Box < [$f] > {
-  // pub fn buffer(&mut self) -> *mut $f {
 
   get r(): number;
   get i(): number;
@@ -25,19 +26,44 @@ interface WasmQuat<V extends WasmVecBase> {
   set i(v: number);
   set j(v: number);
   set k(v: number);
-
-  get rijk(): [number, number, number, number];
-  set rijk(v: [number, number, number, number]);
-
   get length_sq(): number;
   get length(): number;
 
-  set(i: number, j: number, k: number, r: number): void;
+  get array(): A;
+  get buffer(): number;
+
+  // These are less methods to have as they must allocate; do not expose them generally
+  // conjugated(): this; // change wasm to conjugated from conjugate
+  // div(other: this): this;
+  // divf(f: number): this;
+  // mul(other: this): this;
+  // mulf(f: number): this;
+  // neg(): this;
+  // normalize(): this;// change wasm to normalized from normalize
+  // Remove add and sub from Wasm
+
+  apply_set_vec(v: V): void;
+  apply_vec(v: V): V;
+
+  distance(other: this): number;
+  distance_sq(other: this): number;
+  dot(other: this): number;
+
+  // mat3_set_rotation(m: WasmMat3f32): void;
+  // mat4_set_rotation(m: WasmMat4f32): void;
+
   set_unit(): void;
+  set(i: number, j: number, k: number, r: number): void;
+  set_array(array: A): void;
   set_neg(): void;
   set_normalized(): void;
   set_conjugate(): void;
+
+  // This is rarely what you want; it helps with testing though
+  // q <- q + other
   set_add(other: this): void;
+  // This is rarely what you want
+  // q <- q - other
   set_sub(other: this): void;
   // q <- q * other
   set_mul(other: this): void;
@@ -50,25 +76,35 @@ interface WasmQuat<V extends WasmVecBase> {
   set_mulf(scale: number): void;
   set_divf(scale: number): void;
 
-  dot(other: this): number;
-  distance_sq(other: this): number;
-  distance(other: this): number;
+  set_mul(other: this): void;
+  set_div(other: this): void;
+  set_prediv(other: this): void;
+  set_premul(other: this): void;
+  set_divf(f: number): void;
+  set_mulf(f: number): void;
 
-  // self <- self * rotate(Axis, angle)
+  // self < = self * rotate(x, angle)
   set_mul_rotate_x(angle: number): void;
+  // self < = self * rotate(y, angle)
   set_mul_rotate_y(angle: number): void;
+  // self < = self * rotate(z, angle)
   set_mul_rotate_z(angle: number): void;
-
-  // self <- rotate(Axis, angle) * self
+  // self < = rotate(x, angle) * self
   // This is the one you usually want
   set_premul_rotate_x(angle: number): void;
+  // self < = rotate(y, angle) * self
+  // This is the one you usually want
   set_premul_rotate_y(angle: number): void;
+  // self < = rotate(z, angle) * self
+  // This is the one you usually want
   set_premul_rotate_z(angle: number): void;
 
   // Axis need not be a unit vector
-  set_of_axis_angle(v0: V, angle: number): void;
+  set_of_axis_angle(axis: V, angle: number): void;
   // Must be unit vectors
-  set_rotation_of_vec_to_vec(v0: V, v1: V): void;
+  set_rotation_of_vec_to_vec(a: V, b: V): void;
+  // Vectors are of any length in the two different spaces, but presumably di_m
+  // and di_c have the same length, and dj_m and dj_c have the same length
   set_mapping_vector_pair_to_vector_pair(
     di_m: V,
     dj_m: V,
@@ -76,48 +112,31 @@ interface WasmQuat<V extends WasmVecBase> {
     dj_c: V,
   ): void;
 
-  apply_vec(v: V): V;
-  apply_set_vec(v: V): void;
-
-  // These are less methods to have as they must allocate; do not expose them generally
-  // neg(): this;
-  // add(other: this): this;
-  // sub(other: this): this;
-  // mul(other: this): this;
-  // div(other: this): this;
-  // mulf(scale: number): this;
-  // divf(scale: number): this;
-  // conjugate(): this;
-  // normalize() : this;
-
-  // self <- self * rotate(Axis, angle)
-  // pub fn set_mul_rotate_x(&mut self, angle: $f) {
-  // pub fn set_mul_rotate_y(&mut self, angle: $f) {
-  // pub fn set_mul_rotate_z(&mut self, angle: $f) {
-
-  // self <- rotate(Axis, angle) * self
-  // This is the one you usually want
-  // set_premul_rotate_x(angle: $f): void
-  // set_premul_rotate_y(angle: $f): void
-  // set_premul_rotate_z(angle: $f): void
-
-  // pub fn set_rotation_of_vec_to_vec(&mut self, a: &$v, b: &$v) {
-  // pub fn set_mapping_vector_pair_to_vector_pair(
-
-  // pub fn mat3_set_rotation(&self, m: &mut $m3) {
-  // pub fn mat4_set_rotation(&self, m: &mut $m4) {
-  // pub fn average(
-  // static average_many(qs: WasmQuatf32[]): WasmQuatf32;
-  // pub fn average_many(qs: Vec<Self>) -> Self {
-  // pub fn set_array(&mut self, array: &[$f]) {
+  // ORIGINAL
+  //
+  // get rijk(): [number, number, number, number];  Remove from js_lib - must get individually or use array
+  // set rijk(v: [number, number, number, number]); Remove from js_lib - use set_array() or set(i,j,k,r)
 }
 
-class WasmQuatBase<V extends WasmVecBase> implements WasmQuat<V> {
+abstract class WasmQuatBase<
+  A extends LocalArrayType,
+  V extends WasmVec3<A>,
+> implements WasmQuat<A, V> {
   private q: Quaternion;
 
   constructor(i: number = 0, j: number = 0, k: number = 0, r: number = 1) {
     this.q = Quaternion.of_rijk([r, i, j, k]);
   }
+
+  // Must override this
+  get array(): A {
+    return null!;
+  }
+
+  get buffer(): number {
+    return 0;
+  }
+
   clone(): this {
     const q = new (this.constructor as new () => this)();
     q.q = this.q.clone();
@@ -154,6 +173,9 @@ class WasmQuatBase<V extends WasmVecBase> implements WasmQuat<V> {
   }
   set rijk(v: [number, number, number, number]) {
     this.q.rijk = v;
+  }
+  set_array(a: ArrayLike<number>): void {
+    this._quaternion().rijk = [a[0]!, a[1]!, a[2]!, a[3]!];
   }
 
   get length_sq(): number {
@@ -258,9 +280,10 @@ class WasmQuatBase<V extends WasmVecBase> implements WasmQuat<V> {
   }
 
   apply_set_vec(v: V): void {
-    const [x, y, z] = this.q.apply_vec(v._v().xyz);
-    v._v().xyz = [x, y, z];
+    const [x, y, z] = this.q.apply_vec(v.data);
+    v.data.set([x, y, z]);
   }
+
   apply_vec(v: V): V {
     const r = v.clone();
     this.apply_set_vec(r);
@@ -268,14 +291,11 @@ class WasmQuatBase<V extends WasmVecBase> implements WasmQuat<V> {
   }
 
   set_of_axis_angle(v: V, angle: number) {
-    this.q.set_of_axis_angle(
-      [v._v().xyz[0]!, v._v().xyz[1]!, v._v().xyz[2]!],
-      angle,
-    );
+    this.q.set_of_axis_angle([v.data[0]!, v.data[1]!, v.data[2]!], angle);
   }
 
   set_rotation_of_vec_to_vec(v0: V, v1: V): void {
-    this.q.set_rotation_of_vec_to_vec(v0._v().xyz, v1._v().xyz);
+    this.q.set_rotation_of_vec_to_vec(v0.data, v1.data);
   }
 
   set_mapping_vector_pair_to_vector_pair(
@@ -285,10 +305,10 @@ class WasmQuatBase<V extends WasmVecBase> implements WasmQuat<V> {
     dj_c: V,
   ): void {
     this.q.set_mapping_vector_pair_to_vector_pair(
-      di_m._v().xyz,
-      dj_m._v().xyz,
-      di_c._v().xyz,
-      dj_c._v().xyz,
+      di_m.data,
+      dj_m.data,
+      di_c.data,
+      dj_c.data,
     );
   }
 
@@ -321,11 +341,9 @@ class WasmQuatBase<V extends WasmVecBase> implements WasmQuat<V> {
 }
 
 export class WasmQuatf32
-  extends WasmQuatBase<WasmVec3f32>
-  implements WasmQuat<WasmVec3f32>
+  extends WasmQuatBase<Float32Array, WasmVec3f32>
+  implements WasmQuat<Float32Array, WasmVec3f32>
 {
-  // @ts-ignore
-  readonly buffer: number;
   static unit(): WasmQuatf32 {
     return new WasmQuatf32();
   }
@@ -334,12 +352,16 @@ export class WasmQuatf32
     q.set_of_axis_angle(axis, angle);
     return q;
   }
+  override get array(): Float32Array {
+    return new Float32Array(this._quaternion().rijk);
+  }
 }
 
 export class WasmQuatf64
-  extends WasmQuatBase<WasmVec3f64>
-  implements WasmQuat<WasmVec3f64>
+  extends WasmQuatBase<Float64Array, WasmVec3f64>
+  implements WasmQuat<Float64Array, WasmVec3f64>
 {
-  // @ts-ignore
-  readonly buffer: number;
+  override get array(): Float64Array {
+    return new Float64Array(this._quaternion().rijk);
+  }
 }

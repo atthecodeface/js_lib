@@ -370,6 +370,7 @@ export class QuatTestSuite extends wasm_pkg.TestSuite {
     const ooo = new wasm_pkg.WasmVec3f32(1, 1, 1);
     const q_rot_ooo_120 = wasm_pkg.WasmQuatf32.unit();
     q_rot_ooo_120.set_of_axis_angle(ooo, (2 * pi) / 3);
+    expect(q_rot_ooo_120 instanceof wasm_pkg.WasmQuatf32).toBe(true);
 
     expect(q_rot_ooo_120.r).toBeCloseTo(0.5, 6);
     expect(q_rot_ooo_120.i).toBeCloseTo(0.5, 6);

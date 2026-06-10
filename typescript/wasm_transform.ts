@@ -1,27 +1,30 @@
-import { WasmQuatf32 } from "./wasm_quat.js";
-import { Transform } from "./quaternion.js";
+import { WasmVec3, WasmVec3f32, WasmVec3f64 } from "./wasm_vec.js";
+import { WasmQuat, WasmQuatf32, WasmQuatf64 } from "./wasm_quat.js";
+import { Transform } from "./transform.js";
+import { LocalArrayType } from "./test_utils.js";
 
-class WasmTransformBase {
-  private transform: Transform;
+class WasmTransformBase<
+  A extends LocalArrayType,
+  V extends WasmVec3<A>,
+  Q extends WasmQuat<A, V>,
+> extends Transform<A, V, Q> {}
+
+export class WasmTransformf32 extends WasmTransformBase<
+  Float32Array,
+  WasmVec3f32,
+  WasmQuatf32
+> {
   constructor() {
-    this.transform = new Transform();
-  }
-  rotate_by(q: WasmQuatf32) {
-    this.transform.rotate_by(q._quaternion());
-  }
-  scale_by(s: number) {
-    this.transform.scale_by(s);
-  }
-  translate_by(dxyz: [number, number, number]) {
-    this.transform.translate_by(dxyz);
-  }
-  set_q(q: WasmQuatf32) {
-    q._set_quaternion(this.transform.quat);
-  }
-  set_mat4(mat: Float32Array) {
-    this.transform.set_mat4(mat);
+    super(WasmVec3f32, WasmQuatf32);
   }
 }
 
-export class WasmTransformf32 extends WasmTransformBase {}
-export class WasmTransformf64 extends WasmTransformBase {}
+export class WasmTransformf64 extends WasmTransformBase<
+  Float64Array,
+  WasmVec3f64,
+  WasmQuatf64
+> {
+  constructor() {
+    super(WasmVec3f64, WasmQuatf64);
+  }
+}

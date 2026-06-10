@@ -1,4 +1,5 @@
-import { Vector, Vec3 } from "./vector.js";
+import { LocalArrayType } from "./test_utils.js";
+import { Vec3 } from "./vector.js";
 
 export interface WasmVec<A> {
   // static zero(): this;
@@ -48,107 +49,33 @@ export interface WasmVec<A> {
 */
 }
 
-export class WasmVecBase {
+export class WasmVec3<A extends LocalArrayType> extends Vec3<A> {
   // @ts-ignore
   readonly buffer: number;
-  private v: Vector = new Vector();
-  clone(): this {
-    const t = new (this.constructor as new () => this)();
-    t.v = this.v.clone();
-    return t as this;
-  }
-  add(other: this): this {
-    const r = this.clone();
-    r.v.set_scale_add_scaled(1.0, other.v, 1.0);
-    return r;
-  }
-  get is_zero(): boolean {
-    return this.v.is_zero();
-  }
-  get length(): number {
-    return this.v.length();
-  }
-  get length_sq(): number {
-    return this.v.length_sq();
-  }
-
-  set_zero(): void {
-    return this.v.set_mulf(0.0);
-  }
-  set_neg(): void {
-    return this.v.set_mulf(-1.0);
-  }
-  set_normalized(): void {
-    return this.v.set_normalized();
-  }
-  set_add(other: this): void {
-    return this.v.set_scale_add_scaled(1.0, other.v, 1.0);
-  }
-  set_sub(other: this): void {
-    return this.v.set_scale_add_scaled(1.0, other.v, -1.0);
-  }
-  set_mulf(scale: number): void {
-    return this.v.set_mulf(scale);
-  }
-  set_divf(scale: number): void {
-    return this.v.set_mulf(1.0 / scale);
-  }
-
-  dot(other: this): number {
-    return this.v.dot(other.v);
-  }
-
-  distance_sq(other: this): number {
-    return this.v.distance_sq(other.v);
-  }
-  distance(other: this): number {
-    return Math.sqrt(this.distance_sq(other));
-  }
-  mix(other: this, t: number): this {
-    const r = this.clone();
-    r.set_mix(other, t);
-    return r;
-  }
-  set_mix(other: this, t: number): void {
-    this.v.set_scale_add_scaled(1.0 - t, other.v, t);
-  }
-
-  _v(): Vector {
-    return this.v;
-  }
-  _set_v(v: Vector) {
-    this.v = v;
-  }
 }
 
-export class WasmVec3f32 extends WasmVecBase implements WasmVec<Float32Array> {
+export class WasmVec3f32
+  extends WasmVec3<Float32Array>
+  implements WasmVec<Float32Array>
+{
   constructor(x: number, y: number, z: number) {
     super();
-    this._set_v(new Vec3(x, y, z));
+    this.data = new Float32Array([x, y, z]);
   }
   static zero(): WasmVec3f32 {
     return new WasmVec3f32(0, 0, 0);
   }
-  set_array(array: Float32Array): void {
-    this._v().set(array);
-  }
-  get array(): Float32Array {
-    return new Float32Array(this._v().xyz);
-  }
 }
 
-export class WasmVec3f64 extends WasmVecBase implements WasmVec<Float64Array> {
+export class WasmVec3f64
+  extends WasmVec3<Float64Array>
+  implements WasmVec<Float64Array>
+{
   constructor(x: number, y: number, z: number) {
     super();
-    this._set_v(new Vec3(x, y, z));
+    this.data = new Float64Array([x, y, z]);
   }
   static zero(): WasmVec3f64 {
     return new WasmVec3f64(0, 0, 0);
-  }
-  set_array(array: Float64Array): void {
-    this._v().set(array);
-  }
-  get array(): Float64Array {
-    return new Float64Array(this._v().xyz);
   }
 }

@@ -1,13 +1,5 @@
-import { set_scale_add_scaled, is_zero } from "./vector.js";
+import { set_scale_add_scaled, is_zero, LocalArrayType } from "./test_utils.js";
 import { WasmVec } from "./wasm_vec.js";
-
-// This helps with type checking; it is implemented magically by Float32Array and Float64Array
-interface LocalArrayType {
-  get length(): number;
-  slice(): this;
-  [index: number]: number;
-  set(array: ArrayLike<number>): void;
-}
 
 export class Matrix<A extends LocalArrayType> {
   data!: A;

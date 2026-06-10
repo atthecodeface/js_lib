@@ -1,4 +1,6 @@
-import { Vec3, dot, cross_product, set_scale_add_scaled } from "./vector.js";
+// import { Vec3 } from "./vector.js";
+import { set_scale_add_scaled, dot, cross_product } from "./test_utils.js";
+// import { LocalArrayType } from "./test_utils.js";
 
 export class Quaternion {
   rijk: [number, number, number, number];
@@ -86,7 +88,10 @@ export class Quaternion {
     return this;
   }
 
-  set_rotation_of_vec_to_vec(v0: number[], v1: number[]): void {
+  set_rotation_of_vec_to_vec(
+    v0: ArrayLike<number>,
+    v1: ArrayLike<number>,
+  ): void {
     const obtuse = dot(v0, v1) < 0.0;
     const cp = cross_product(v0, v1);
     const sa = Math.min(Math.sqrt(dot(cp, cp)), 1);
@@ -98,10 +103,10 @@ export class Quaternion {
   }
 
   set_mapping_vector_pair_to_vector_pair(
-    di_m: number[],
-    dj_m: number[],
-    di_c: number[],
-    dj_c: number[],
+    di_m: ArrayLike<number>,
+    dj_m: ArrayLike<number>,
+    di_c: ArrayLike<number>,
+    dj_c: ArrayLike<number>,
   ): void {
     const qi_c = new Quaternion();
     const qi_m = new Quaternion();
@@ -122,7 +127,7 @@ export class Quaternion {
     this.mul_assign_q(qi_m);
   }
 
-  apply_vec(v: number[]): [number, number, number] {
+  apply_vec(v: ArrayLike<number>): [number, number, number] {
     const r = this.rijk[0];
     const i = this.rijk[1];
     const j = this.rijk[2];
@@ -167,56 +172,5 @@ export class Quaternion {
       0,
       1,
     ];
-  }
-}
-
-export class Transform {
-  scale: number = 1.0;
-  quat: Quaternion;
-  translation: Vec3;
-  constructor() {
-    this.quat = new Quaternion();
-    this.translation = new Vec3(0, 0, 0);
-  }
-  scale_by(s: number) {
-    this.scale *= s;
-    this.translation.set_mulf(s);
-  }
-  translate_by(dxyz: [number, number, number]) {
-    const dxyz_vec = new Vec3(dxyz[0], dxyz[1], dxyz[2]);
-    this.translation.set_scale_add_scaled(1.0, dxyz_vec, 1.0);
-  }
-  rotate_by(q: Quaternion) {
-    // this.quat = q.clone().mul_assign_q(this.quat);
-    this.quat.mul_assign_q(q);
-    // this.translation.mul_assign_q(q);
-  }
-
-  set_mat4(mat: Float32Array) {
-    const r = this.quat.rijk[0];
-    const i = this.quat.rijk[1];
-    const j = this.quat.rijk[2];
-    const k = this.quat.rijk[3];
-    mat.set([
-      this.scale * (1 - 2 * (j * j + k * k)),
-      this.scale * 2 * (i * j - r * k),
-      this.scale * 2 * (i * k + r * j),
-      0.0 * this.translation.xyz[0]! /*  */,
-
-      this.scale * 2 * (i * j + r * k),
-      this.scale * (1 - 2 * (i * i + k * k)),
-      this.scale * 2 * (j * k - r * i),
-      0.0 * this.translation.xyz[1]! /*  */,
-
-      this.scale * 2 * (i * k - r * j),
-      this.scale * 2 * (j * k + r * i),
-      this.scale * (1 - 2 * (i * i + j * j)),
-      0.0 * this.translation.xyz[2]! /*  */,
-
-      this.translation.xyz[0]!,
-      this.translation.xyz[1]!,
-      this.translation.xyz[2]!,
-      1,
-    ]);
   }
 }
