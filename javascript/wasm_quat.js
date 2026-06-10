@@ -1,11 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WasmQuatf64 = exports.WasmQuatf32 = void 0;
-const vector_js_1 = require("./vector.js");
+const test_utils_js_1 = require("./test_utils.js");
 const quaternion_js_1 = require("./quaternion.js");
 class WasmQuatBase {
     constructor(i = 0, j = 0, k = 0, r = 1) {
         this.q = quaternion_js_1.Quaternion.of_rijk([r, i, j, k]);
+    }
+    // Must override this
+    get array() {
+        return null;
+    }
+    get buffer() {
+        return 0;
     }
     clone() {
         const q = new this.constructor();
@@ -41,6 +48,9 @@ class WasmQuatBase {
     }
     set rijk(v) {
         this.q.rijk = v;
+    }
+    set_array(a) {
+        this._quaternion().rijk = [a[0], a[1], a[2], a[3]];
     }
     get length_sq() {
         return this.q.length_sq();
@@ -128,7 +138,7 @@ class WasmQuatBase {
         this.q = q;
     }
     dot(other) {
-        return (0, vector_js_1.dot)(this.q.rijk, other.q.rijk);
+        return (0, test_utils_js_1.dot)(this.q.rijk, other.q.rijk);
     }
     distance_sq(other) {
         return this.q.distance_sq(other.q);
@@ -137,8 +147,8 @@ class WasmQuatBase {
         return Math.sqrt(this.distance_sq(other));
     }
     apply_set_vec(v) {
-        const [x, y, z] = this.q.apply_vec(v._v().xyz);
-        v._v().xyz = [x, y, z];
+        const [x, y, z] = this.q.apply_vec(v.data);
+        v.data.set([x, y, z]);
     }
     apply_vec(v) {
         const r = v.clone();
@@ -146,13 +156,13 @@ class WasmQuatBase {
         return r;
     }
     set_of_axis_angle(v, angle) {
-        this.q.set_of_axis_angle([v._v().xyz[0], v._v().xyz[1], v._v().xyz[2]], angle);
+        this.q.set_of_axis_angle([v.data[0], v.data[1], v.data[2]], angle);
     }
     set_rotation_of_vec_to_vec(v0, v1) {
-        this.q.set_rotation_of_vec_to_vec(v0._v().xyz, v1._v().xyz);
+        this.q.set_rotation_of_vec_to_vec(v0.data, v1.data);
     }
     set_mapping_vector_pair_to_vector_pair(di_m, dj_m, di_c, dj_c) {
-        this.q.set_mapping_vector_pair_to_vector_pair(di_m._v().xyz, dj_m._v().xyz, di_c._v().xyz, dj_c._v().xyz);
+        this.q.set_mapping_vector_pair_to_vector_pair(di_m.data, dj_m.data, di_c.data, dj_c.data);
     }
     // Try not to use these...
     conjugate() {
@@ -189,9 +199,15 @@ class WasmQuatf32 extends WasmQuatBase {
         q.set_of_axis_angle(axis, angle);
         return q;
     }
+    get array() {
+        return new Float32Array(this._quaternion().rijk);
+    }
 }
 exports.WasmQuatf32 = WasmQuatf32;
 class WasmQuatf64 extends WasmQuatBase {
+    get array() {
+        return new Float64Array(this._quaternion().rijk);
+    }
 }
 exports.WasmQuatf64 = WasmQuatf64;
 //# sourceMappingURL=wasm_quat.js.map

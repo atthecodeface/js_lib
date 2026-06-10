@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Transform = exports.Quaternion = void 0;
-const vector_js_1 = require("./vector.js");
+exports.Quaternion = void 0;
+// import { Vec3 } from "./vector.js";
+const test_utils_js_1 = require("./test_utils.js");
+// import { LocalArrayType } from "./test_utils.js";
 class Quaternion {
     constructor() {
         this.rijk = [1, 0, 0, 0];
@@ -17,7 +19,7 @@ class Quaternion {
         return q;
     }
     length_sq() {
-        return (0, vector_js_1.dot)(this.rijk, this.rijk);
+        return (0, test_utils_js_1.dot)(this.rijk, this.rijk);
     }
     set_conjugate() {
         this.rijk[1] = -this.rijk[1];
@@ -25,7 +27,7 @@ class Quaternion {
         this.rijk[3] = -this.rijk[3];
     }
     set_scale_add_scaled(scale, other, oscale) {
-        (0, vector_js_1.set_scale_add_scaled)(this.rijk, scale, other.rijk, oscale);
+        (0, test_utils_js_1.set_scale_add_scaled)(this.rijk, scale, other.rijk, oscale);
     }
     distance_sq(other) {
         const r = this.clone_conjugate();
@@ -34,7 +36,7 @@ class Quaternion {
     }
     // Axis need not be a unit vector
     set_of_axis_angle(axis, angle) {
-        const l = Math.sqrt((0, vector_js_1.dot)(axis, axis));
+        const l = Math.sqrt((0, test_utils_js_1.dot)(axis, axis));
         if (l < 1e-6) {
             this.rijk = [1, 0, 0, 0];
         }
@@ -75,9 +77,9 @@ class Quaternion {
         return this;
     }
     set_rotation_of_vec_to_vec(v0, v1) {
-        const obtuse = (0, vector_js_1.dot)(v0, v1) < 0.0;
-        const cp = (0, vector_js_1.cross_product)(v0, v1);
-        const sa = Math.min(Math.sqrt((0, vector_js_1.dot)(cp, cp)), 1);
+        const obtuse = (0, test_utils_js_1.dot)(v0, v1) < 0.0;
+        const cp = (0, test_utils_js_1.cross_product)(v0, v1);
+        const sa = Math.min(Math.sqrt((0, test_utils_js_1.dot)(cp, cp)), 1);
         var angle = Math.asin(sa);
         if (obtuse) {
             angle = Math.PI - angle;
@@ -142,49 +144,4 @@ class Quaternion {
     }
 }
 exports.Quaternion = Quaternion;
-class Transform {
-    constructor() {
-        this.scale = 1.0;
-        this.quat = new Quaternion();
-        this.translation = new vector_js_1.Vec3(0, 0, 0);
-    }
-    scale_by(s) {
-        this.scale *= s;
-        this.translation.set_mulf(s);
-    }
-    translate_by(dxyz) {
-        const dxyz_vec = new vector_js_1.Vec3(dxyz[0], dxyz[1], dxyz[2]);
-        this.translation.set_scale_add_scaled(1.0, dxyz_vec, 1.0);
-    }
-    rotate_by(q) {
-        // this.quat = q.clone().mul_assign_q(this.quat);
-        this.quat.mul_assign_q(q);
-        // this.translation.mul_assign_q(q);
-    }
-    set_mat4(mat) {
-        const r = this.quat.rijk[0];
-        const i = this.quat.rijk[1];
-        const j = this.quat.rijk[2];
-        const k = this.quat.rijk[3];
-        mat.set([
-            this.scale * (1 - 2 * (j * j + k * k)),
-            this.scale * 2 * (i * j - r * k),
-            this.scale * 2 * (i * k + r * j),
-            0.0 * this.translation.xyz[0] /*  */,
-            this.scale * 2 * (i * j + r * k),
-            this.scale * (1 - 2 * (i * i + k * k)),
-            this.scale * 2 * (j * k - r * i),
-            0.0 * this.translation.xyz[1] /*  */,
-            this.scale * 2 * (i * k - r * j),
-            this.scale * 2 * (j * k + r * i),
-            this.scale * (1 - 2 * (i * i + j * j)),
-            0.0 * this.translation.xyz[2] /*  */,
-            this.translation.xyz[0],
-            this.translation.xyz[1],
-            this.translation.xyz[2],
-            1,
-        ]);
-    }
-}
-exports.Transform = Transform;
 //# sourceMappingURL=quaternion.js.map
